@@ -1,5 +1,5 @@
 import troop_classes
-import gebouwen
+import buildings
 import pygame
 import numpy as np
 import random
@@ -9,7 +9,12 @@ screen_height = 500
 screen = pygame.display.set_mode([screen_width, screen_height])
 clock = pygame.time.Clock()
 small_troop1 = troop_classes.small_troop(50, 50, (50, 50), 50)
-building_1 = gebouwen.
+building_1 = buildings.Wall(20, 20, 0)
+
+
+troop_pos_x, troop_pos_y = 5, 5
+troop_coordinates = (troop_pos_x, troop_pos_y)
+
 
 def make_grid(surface:pygame.Surface,color:tuple,height_block:int,width_block:int,height_screen:int,width_screen:int):
     
@@ -38,7 +43,6 @@ def create_maze(dim, saturation):
                 maze[x, y] = 0
             else:
                 maze[x, y] = 1
-            print(maze[x, y])
     #make an edge around
     maze[:,0] = 1
     maze[0,:] = 1
@@ -46,21 +50,23 @@ def create_maze(dim, saturation):
     maze[-1,:] = 1
 
     maze[1, 1] = 0
-    print(maze)
     return maze
 
 
 running = True
 while running:
     clock.tick(20)
+    print("1 tick")
     screen.fill(color=(0,0,0))
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
-    grid = make_grid(screen, (0,0,0), 50, 65, 500, 650)
-    small_troop1.draw_troop(screen, (255,255,255), (0, 0), radius = 50, alive = True)
-    small_troop1.move((5, 5), 5, )
-   # small_troop1.find_nearest_building()
+    grid = create_maze(50, 65)
+    small_troop1.draw_troop(screen, (255,255,255), (0, 0), radius = 1, alive = True)
+    buildings = [building_1]
+    coordinates_of_nearest_building = small_troop1.find_nearest_building([building_1], troop_coordinates) 
+    small_troop1.find_path(troop_coordinates, coordinates_of_nearest_building, grid)
+    troop_coordinates = small_troop1.move(troop_coordinates, building_1, grid)
     pygame.display.flip()
 
 pygame.quit()

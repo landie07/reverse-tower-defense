@@ -15,9 +15,10 @@ class small_troop:
             pygame.draw.circle(screen, rgb_color, troop_coordinates, 50)
 
     def find_nearest_building(self, buildings: list, troop_coordinates: tuple): #idris, sava: troop_coordinates is een tuple!
-        nearest_building = None
-        x_coordinate_of_nearest_building = None
-        y_coordinate_of_nearest_building = None
+        x_coordinate_of_nearest_building = 2 + self.x_grid_size * 2 
+        y_coordinate_of_nearest_building = 2 + self.y_grid_size * 2
+        print("huh???")
+        print(troop_coordinates)
         x_troop_coordinate, y_troop_coordinate = troop_coordinates
         for building in buildings:
             building_x_coordinate, building_y_coordinate = building.coordinates #idris, voeg aan je gebouwclass een property toe voor de coordinaten van het gebouw als tuple 
@@ -29,13 +30,12 @@ class small_troop:
         return coordinates_of_nearest_building
     
     #deze functie zoekt een pad van de huidige positie naar de positie bepaald in de find_nearest_building() functie.
-    def find_path(self, troop_coordinates, coordinates_of_nearest_building, grid_system): #sava, grid system moet een geneste lijst zijn met waarden voor wat er op iedere pixel staat, een 0 voor leeg, een 1 voor een troep, een 2 voor een gebouw
+    def find_path(self, troop_coordinates: tuple, coordinates_of_nearest_building: tuple, grid): #sava, grid system moet een geneste lijst zijn met waarden voor wat er op iedere pixel staat, een 0 voor leeg, een 1 voor een troep, een 2 voor een gebouw
         visited_locations = []
         instructions = []
         fifo = queue.Queue()
         path = [troop_coordinates]
         fifo.put(troop_coordinates)
-        print(type(troop_coordinates))
         print(troop_coordinates)
         while fifo.empty() != True:
             troop_coordinates = fifo.get()
@@ -44,13 +44,12 @@ class small_troop:
                 if visited_locations.count((troop_coordinates[0] + direction[0], troop_coordinates[1] + direction[1])) == 0:
                     if troop_coordinates[1] + direction[1] < 10 and troop_coordinates[1] + direction[1] > 0:
                         if troop_coordinates[0] + direction[0] < 10 and troop_coordinates[0] + direction[0] > 0:
-                            if grid_system[troop_coordinates[0] + direction[0], troop_coordinates[1] + direction[1]] == 0: 
-                                x_coordinate, y_coordinate = new_coordinates
+                            if grid[troop_coordinates[0] + direction[0], troop_coordinates[1] + direction[1]] == 0: 
+                                x_coordinate, y_coordinate = troop_coordinates
                                 x_direction, y_direction = direction
                                 instructions.append((x_direction, y_direction))
                                 new_coordinates = (x_coordinate + x_direction, y_coordinate + y_direction)
                                 if new_coordinates[0] == self.x_grid_size - 1 and new_coordinates[1] == self.y_grid_size - 2:
-                                    print("oplossing gevonden!")
                                     return True
                                 else:
                                     visited_locations.append(new_coordinates)
@@ -58,12 +57,15 @@ class small_troop:
         visited_locations.append(coordinates_of_nearest_building)
         return visited_locations, instructions
             
-    def move(self, troop_coordinates, speed, buildings, grid_system):
-        nearest_building = (buildings, troop_coordinates)
-        path, instructions = self.find_path(self, troop_coordinates, nearest_building.coordinates, grid_system)
-        instruction = instructions.pop(0)
-        troop_coordinates = (troop_coordinates[0] + instruction[0],troop_coordinates[1] + instruction[1])
-        return troop_coordinates
+    def move(self, troop_coordinates, building, grid_system):
+        try:
+            coordinates_of_nearest_building = (building.x, building.y)
+            path, instructions = self.find_path(troop_coordinates, coordinates_of_nearest_building, grid_system)
+            instruction = instructions.pop(0)
+            troop_coordinates = (troop_coordinates[0] + instruction[0],troop_coordinates[1] + instruction[1])
+            return troop_coordinates
+        except IndexError:
+            quit
 
     def check_for_collision():
         print("PLACEHOLDER")
