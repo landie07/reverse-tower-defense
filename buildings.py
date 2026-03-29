@@ -39,25 +39,25 @@ class Wall(Building):
 
         pygame.draw.line(screen, Wall.color, start, end, width=Wall.thickness)
 
-tower_hp = 100
-tower_range = 4
-tower_shot_cooldown = 60
-tower_radius = 50
-tower_color = 0x99550C
 class Tower(Building):
+    hp = 100
+    range = 4
+    shot_cooldown = 60
+    radius = 50
+    color = 0x99550C
     def __init__(self, x: float, y: float):
         self.x = x
         self.y = y
-        self.hp = tower_hp
+        self.hp = Tower.hp
         self.target = None
-        self.shot_cooldown = tower_shot_cooldown
+        self.shot_cooldown = Tower.shot_cooldown
 
     def tick(self):
         if self.shot_cooldown > 0:
             self.shot_cooldown -= 1
             return
 
-        self.shot_cooldown = tower_shot_cooldown
+        self.shot_cooldown = Tower.shot_cooldown
         troops = [] # TODO
         self.find_target(troops)
         # shoot at target
@@ -67,7 +67,7 @@ class Tower(Building):
     def find_target(self, troops: list):
         if self.target != None:
             dst = sqrt((self.x - self.target.x) ** 2 + (self.y - self.target.y) ** 2)
-            if dst <= tower_range:
+            if dst <= Tower.range:
                 return
 
             self.target = None
@@ -81,14 +81,14 @@ class Tower(Building):
                 nearest_dst = dst
                 nearest_idx = i
 
-        if nearest_idx < 0 or nearest_dst > tower_range:
+        if nearest_idx < 0 or nearest_dst > Tower.range:
             return
 
         self.target = troops[nearest_idx]
 
 
     def draw(self, screen):
-        pygame.draw.circle(screen, tower_color, (self.x, self.y), tower_radius)
+        pygame.draw.circle(screen, Tower.color, self.coordinates, Tower.radius)
 
 class Landmine(Building):
     hp = 1
@@ -123,7 +123,7 @@ class Landmine(Building):
         self.hp = 0
 
     def draw(self, screen):
-        pygame.draw.circle(screen, Landmine.color, (self.x, self.y), Landmine.draw_radius)
+        pygame.draw.circle(screen, Landmine.color, self.coordinates, Landmine.draw_radius)
 
 def _test():
     screen_width = 500
