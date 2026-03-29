@@ -42,9 +42,11 @@ class Wall(Building):
 class Tower(Building):
     hp = 100
     range = 4
+    damage_hp = 5
     shot_cooldown = 60
     radius = 50
     color = 0x99550C
+
     def __init__(self, x: float, y: float):
         self.x = x
         self.y = y
@@ -60,7 +62,7 @@ class Tower(Building):
         self.shot_cooldown = Tower.shot_cooldown
         troops = [] # TODO
         self.find_target(troops)
-        # shoot at target
+        self.target.take_damage(Tower.damage_hp)
 
         
 
@@ -96,6 +98,8 @@ class Landmine(Building):
     activation_radius = 1
     damage_radius = 2
     color = 0x6E7A07
+    damage_hp = 20
+
     def __init__(self, x: float, y: float):
         self.x = x
         self.y = y
@@ -118,7 +122,7 @@ class Landmine(Building):
         for troop in troops:
             dst = sqrt((self.x - troop.x) ** 2 + (self.y - troop.y) ** 2)
             if dst < Landmine.damage_radius:
-                # troop.damage()
+                troop.take_damage(Landmine.damage_hp)
 
         self.hp = 0
 
