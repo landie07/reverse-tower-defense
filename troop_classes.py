@@ -2,9 +2,8 @@ import queue
 import pygame
 
 class small_troop:
-    def __init__(self: int, health: int, speed : int, grid_dimentions: tuple, attack_damage: int):
+    def __init__(self, health: int, speed : int, grid_dimentions: tuple, attack_damage: int):
         self.alive = True
-        troopsize = 50
         self.health = health
         self.speed = speed
         self.attack_damage = attack_damage
@@ -15,7 +14,7 @@ class small_troop:
         if self.alive:
             pygame.draw.circle(screen, rgb_color, troop_coordinates, 50)
 
-    def find_nearest_building(buildings: list, troop_coordinates: tuple): #idris, sava: troop_coordinates is een tuple!
+    def find_nearest_building(self, buildings: list, troop_coordinates: tuple): #idris, sava: troop_coordinates is een tuple!
         nearest_building = None
         x_coordinate_of_nearest_building = None
         y_coordinate_of_nearest_building = None
@@ -29,6 +28,7 @@ class small_troop:
         coordinates_of_nearest_building = (x_coordinate_of_nearest_building, y_coordinate_of_nearest_building)
         return coordinates_of_nearest_building
     
+    #deze functie zoekt een pad van de huidige positie naar de positie bepaald in de find_nearest_building() functie.
     def find_path(self, troop_coordinates, coordinates_of_nearest_building, grid_system): #sava, grid system moet een geneste lijst zijn met waarden voor wat er op iedere pixel staat, een 0 voor leeg, een 1 voor een troep, een 2 voor een gebouw
         visited_locations = []
         instructions = []
@@ -62,26 +62,23 @@ class small_troop:
         nearest_building = (buildings, troop_coordinates)
         path, instructions = self.find_path(self, troop_coordinates, nearest_building.coordinates, grid_system)
         instruction = instructions.pop(0)
-        troop_coordinates = (troop_coordinates[0], instruction[0],troop_coordinates[1], instruction[1])
+        troop_coordinates = (troop_coordinates[0] + instruction[0],troop_coordinates[1] + instruction[1])
         return troop_coordinates
 
     def check_for_collision():
         print("PLACEHOLDER")
         
-    def take_damage(damage):
-        health -= damage
-        return health
+    def take_damage(self, damage):
+        self.health -= damage
     
     def attack(self, tower_health):
         tower_health -= self.attack_damage
         if tower_health <= 0:
             print("PLACEHOLDER")
-            #idris, verwijder de toren functie moet hier gecald worden, jij moet die nog maken
+            #idris, de "verwijder de toren" functie moet hier gecald worden, jij moet die nog maken
         return tower_health
     
-    def die(alive):
-        alive = False
-        return alive
-    
+    def die(self, alive):
+        self.alive = False    
 
 
