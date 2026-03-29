@@ -8,26 +8,36 @@ class Building:
     def draw(self, screen):
         pass
 
-wall_thickness = 5
-wall_width = 50
-wall_color = 0xaaaaaa
-wall_hp = 200
+    @property
+    def coordinates(self) -> tuple[float]:
+        return (self.x, self.y)
+
+    def damage(self, hp):
+        self.hp -= hp
+        if self.hp <= 0:
+            pass # toren deleten
+
 class Wall(Building):
+    thickness = 5
+    width = 50
+    color = 0xaaaaaa
+    hp = 200
+
     # let op met rotation want positieve y-as gaat naar beneden
     def __init__(self, x: float, y: float, rotation_angle: float):
         self.x = x
         self.y = y
         self.rotation = rotation_angle
-        self.hp = wall_hp
+        self.hp = Wall.hp
 
     def tick(self):
         pass
 
     def draw(self, screen):
-        start = (self.x - wall_width * cos(self.rotation) / 2, self.y - wall_width * sin(self.rotation) / 2)
-        end   = (self.x + wall_width * cos(self.rotation) / 2, self.y + wall_width * sin(self.rotation) / 2)
+        start = (self.x - Wall.width * cos(self.rotation) / 2, self.y - Wall.width * sin(self.rotation) / 2)
+        end   = (self.x + Wall.width * cos(self.rotation) / 2, self.y + Wall.width * sin(self.rotation) / 2)
 
-        pygame.draw.line(screen, wall_color, start, end, width=wall_thickness)
+        pygame.draw.line(screen, Wall.color, start, end, width=Wall.thickness)
 
 tower_hp = 100
 tower_range = 4
@@ -80,16 +90,16 @@ class Tower(Building):
     def draw(self, screen):
         pygame.draw.circle(screen, tower_color, (self.x, self.y), tower_radius)
 
-landmine_hp = 1
-landmine_draw_radius = 25
-landmine_activation_radius = 1
-landmine_damage_radius = 2
-landmine_color = 0x6E7A07
 class Landmine(Building):
+    hp = 1
+    draw_radius = 25
+    activation_radius = 1
+    damage_radius = 2
+    color = 0x6E7A07
     def __init__(self, x: float, y: float):
         self.x = x
         self.y = y
-        self.hp = landmine_hp
+        self.hp = Landmine.hp
 
     def tick(self):
         troops = [] # TODO
@@ -98,7 +108,7 @@ class Landmine(Building):
 
         for i, troop in enumerate(troops):
             dst = sqrt((self.x - troop.x) ** 2 + (self.y - troop.y) ** 2)
-            if dst < landmine_activation_radius:
+            if dst < Landmine.activation_radius:
                 explode = True
                 break
 
@@ -107,13 +117,13 @@ class Landmine(Building):
 
         for troop in troops:
             dst = sqrt((self.x - troop.x) ** 2 + (self.y - troop.y) ** 2)
-            if dst < landmine_damage_radius:
+            if dst < Landmine.damage_radius:
                 # troop.damage()
 
         self.hp = 0
 
     def draw(self, screen):
-        pygame.draw.circle(screen, landmine_color, (self.x, self.y), landmine_draw_radius)
+        pygame.draw.circle(screen, Landmine.color, (self.x, self.y), Landmine.draw_radius)
 
 def _test():
     screen_width = 500
