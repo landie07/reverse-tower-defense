@@ -1,5 +1,5 @@
 import pygame 
-def make_grid(surface,color,height_block,width_block,height_screen,width_screen):
+def make_grid(surface:pygame.Surface,color:tuple,height_block:int,width_block:int,height_screen:int,width_screen:int):
     
     
     number_of_rows = height_screen // height_block # // range heeft int nodig
