@@ -25,6 +25,8 @@ troops.append(terrorist)
 troops.append(terrorist1)
 troops.append(terrorist2)
 
+
+
 building_1 = buildings.Wall(8 * grid_tile_size, 8 * grid_tile_size, 0)
 
 visited_locations = []
@@ -84,7 +86,7 @@ while running:
             tick = 0
             coordinates_of_nearest_building = terrorist.find_nearest_building([building_1], troop.troop_coordinates) 
             visited_locations, path_to_nearest_building = terrorist.find_path(troop.troop_coordinates, coordinates_of_nearest_building, grid, visited_locations)
-            troop.troop_coordinates = terrorist.move(troop_coordinates, path_to_nearest_building)
+            troop.troop_coordinates = terrorist.move(troop_coordinates, path_to_nearest_building, building_1)
     pygame.display.flip()
 
 pygame.quit()

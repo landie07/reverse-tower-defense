@@ -88,7 +88,7 @@ class troop:
         if self.health <= 0:
             self.die()
     
-    def attack(self, building):
+    def attack(self, building: buildings.Building):
         building.damage(building.hp)
 
     def die(self):
@@ -106,14 +106,14 @@ class terrorist(troop):
         self.x_grid_size, self.y_grid_size = self.grid_dimentions
         self.troop_coordinates = troop_coordinates
 
-    def move(self, troop_coordinates, path):
+    def move(self, troop_coordinates, path, building):
         if len(path) >= 1:
             instruction = path.pop(0)
             print(instruction)
             troop_coordinates = (troop_coordinates[0] + instruction[0], troop_coordinates[1] + instruction[1]) 
         else:
             self.die()
-            self.attack(self.attack_damage)
+            self.attack(building)
             del self
         return troop_coordinates
     
