@@ -4,16 +4,30 @@ import pygame
 import numpy as np
 import random
 
+
+grid_tile_size = 10
+tick = 0
+ticks_per_second = 100
 screen_width = 500
 screen_height = 500
 screen = pygame.display.set_mode([screen_width, screen_height])
 clock = pygame.time.Clock()
-small_troop1 = troop_classes.small_troop(50, 50, (50, 50), 50)
-building_1 = buildings.Wall(20, 20, 0)
 
-
+troop_speed = 50
 troop_pos_x, troop_pos_y = 5, 5
 troop_coordinates = (troop_pos_x, troop_pos_y)
+troops = []
+terrorist = troop_classes.terrorist(50, 2, (50, 50), 50, 5, troop_coordinates)
+terrorist1 = troop_classes.terrorist(50, 2, (10, 10), 50, 5, troop_coordinates)
+terrorist2 = troop_classes.terrorist(50, 2, (20, 20), 50, 5, troop_coordinates)
+
+troops.append(terrorist)
+troops.append(terrorist1)
+troops.append(terrorist2)
+
+building_1 = buildings.Wall(8 * grid_tile_size, 8 * grid_tile_size, 0)
+
+visited_locations = []
 
 
 def make_grid(surface:pygame.Surface,color:tuple,height_block:int,width_block:int,height_screen:int,width_screen:int):
@@ -55,18 +69,22 @@ def create_maze(dim, saturation):
 
 running = True
 while running:
-    clock.tick(20)
-    print("1 tick")
+    clock.tick(ticks_per_second)
+    tick += 1
     screen.fill(color=(0,0,0))
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
-    grid = create_maze(50, 65)
-    small_troop1.draw_troop(screen, (255,255,255), (0, 0), radius = 1, alive = True)
+    grid = create_maze(16, 65)
     buildings = [building_1]
-    coordinates_of_nearest_building = small_troop1.find_nearest_building([building_1], troop_coordinates) 
-    small_troop1.find_path(troop_coordinates, coordinates_of_nearest_building, grid)
-    troop_coordinates = small_troop1.move(troop_coordinates, building_1, grid)
+    for troop in troops:
+        if terrorist.alive:
+            terrorist.draw_troop(screen, (255,255,255), (troop.troop_coordinates[0] * grid_tile_size, troop.troop_coordinates[1] * grid_tile_size), radius = 5, alive = True)
+        if tick >= ticks_per_second/troop.speed:
+            tick = 0
+            coordinates_of_nearest_building = terrorist.find_nearest_building([building_1], troop.troop_coordinates) 
+            visited_locations, path_to_nearest_building = terrorist.find_path(troop.troop_coordinates, coordinates_of_nearest_building, grid, visited_locations)
+            troop.troop_coordinates = terrorist.move(troop_coordinates, path_to_nearest_building)
     pygame.display.flip()
 
 pygame.quit()
