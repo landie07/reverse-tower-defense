@@ -1,8 +1,9 @@
 from math import sin, cos, pi, sqrt
 import pygame
+import troop_classes
 
 class Building:
-    def tick(self):
+    def tick(self, grid):
         pass
 
     def draw(self, screen):
@@ -12,10 +13,16 @@ class Building:
     def coordinates(self) -> tuple[float]:
         return (self.x, self.y)
 
-    def damage(self, hp):
+    def damage(self, hp, grid):
         self.hp -= hp
-        if self.hp <= 0:
-            pass # toren deleten
+        if self.hp > 0:
+            return
+
+        for row in grid:
+            for i, e in enumerate(row):
+                if e is self:
+                    row[i] = None
+                    return
 
 class Wall(Building):
     thickness = 5
@@ -30,7 +37,7 @@ class Wall(Building):
         self.rotation = rotation_angle
         self.hp = Wall.hp
 
-    def tick(self):
+    def tick(self, grid):
         pass
 
     def draw(self, screen):
@@ -54,17 +61,21 @@ class Tower(Building):
         self.target = None
         self.shot_cooldown = Tower.shot_cooldown
 
-    def tick(self):
+    def tick(self, grid):
         if self.shot_cooldown > 0:
             self.shot_cooldown -= 1
             return
 
         self.shot_cooldown = Tower.shot_cooldown
-        troops = [] # TODO
+        troops = []
+
+        for row in grid:
+            for e in grid:
+                if isinstance(e, troop_classes.troop):
+                    troops.append(e)
+
         self.find_target(troops)
         self.target.take_damage(Tower.damage_hp)
-
-        
 
     def find_target(self, troops: list):
         if self.target != None:
@@ -105,8 +116,13 @@ class Landmine(Building):
         self.y = y
         self.hp = Landmine.hp
 
-    def tick(self):
-        troops = [] # TODO
+    def tick(self, grid):
+        troops = []
+
+        for row in grid:
+            for e in grid:
+                if isinstance(e, troop_classes.troop):
+                    troops.append(e)
 
         explode = False
 
