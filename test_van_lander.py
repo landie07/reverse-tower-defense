@@ -5,21 +5,23 @@ import numpy as np
 import random
 
 
-grid_tile_size = 10
+grid_tile_size = 1
 tick = 0
-ticks_per_second = 100
+ticks_per_second = 1
 screen_width = 500
 screen_height = 500
-screen = pygame.display.set_mode([screen_width, screen_height])
+grid_width = 64
+grid_height = 64
+screen = pygame.display.set_mode([grid_width * grid_tile_size, grid_height * grid_tile_size])
 clock = pygame.time.Clock()
 
 troop_speed = 50
 troop_pos_x, troop_pos_y = 5, 5
 troop_coordinates = (troop_pos_x, troop_pos_y)
 troops = []
-terrorist = troop_classes.terrorist(50, 2, (50, 50), 50, 5, troop_coordinates)
-terrorist1 = troop_classes.terrorist(50, 2, (10, 10), 50, 5, troop_coordinates)
-terrorist2 = troop_classes.terrorist(50, 2, (20, 20), 50, 5, troop_coordinates)
+terrorist = troop_classes.terrorist(50, 2, (grid_width, grid_height), 50, 5, troop_coordinates, grid_tile_size)
+terrorist1 = troop_classes.terrorist(50, 2, (grid_width, grid_height), 50, 5, troop_coordinates, grid_tile_size)
+terrorist2 = troop_classes.terrorist(50, 2, (grid_width, grid_height), 50, 5, troop_coordinates, grid_tile_size)
 
 troops.append(terrorist)
 troops.append(terrorist1)
@@ -60,12 +62,13 @@ def create_maze(dim, saturation):
             else:
                 maze[x, y] = 1
     #make an edge around
-    maze[:,0] = 1
-    maze[0,:] = 1
-    maze[:,-1] = 1
-    maze[-1,:] = 1
-
+    maze[:,0] = 2
+    maze[0,:] = 2
+    maze[:,-1] = 2
+    maze[-1,:] = 2
+    maze[building_1.x//grid_tile_size, building_1.y//grid_tile_size] = 1
     maze[1, 1] = 0
+    print(maze)
     return maze
 
 
@@ -77,19 +80,22 @@ while running:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
-    grid = create_maze(16, 65)
+    grid = create_maze(grid_width, 0)
     buildings = [building_1]
+    building_1.draw(screen)
     for troop in troops:
         if terrorist.alive:
-            terrorist.draw_troop(screen, (255,255,255), (troop.troop_coordinates[0] * grid_tile_size, troop.troop_coordinates[1] * grid_tile_size), radius = 5, alive = True)
+            terrorist.draw_troop(screen, (255,255,255))
+            print("alive")
         if tick >= ticks_per_second/troop.speed:
             tick = 0
-            coordinates_of_nearest_building = terrorist.find_nearest_building([building_1], troop.troop_coordinates) 
-            visited_locations, path_to_nearest_building = terrorist.find_path(troop.troop_coordinates, coordinates_of_nearest_building, grid, visited_locations)
-            troop.troop_coordinates = terrorist.move(troop_coordinates, path_to_nearest_building, building_1)
+            coordinates_of_nearest_building = terrorist.find_nearest_building([building_1]) 
+            visited_locations, path_to_nearest_building = terrorist.find_path(coordinates_of_nearest_building, grid, visited_locations)
+            troop.troop_coordinates = terrorist.move(path_to_nearest_building, building_1)
     pygame.display.flip()
 
 pygame.quit()
+
 
 
 

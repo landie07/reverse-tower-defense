@@ -20,7 +20,7 @@ class Building:
 class Wall(Building):
     thickness = 5
     width = 50
-    color = 0xaaaaaa
+    color = 0xffffff
     hp = 200
 
     # let op met rotation want positieve y-as gaat naar beneden
