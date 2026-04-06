@@ -14,6 +14,9 @@ class troop:
         self.troop_size = troop_size
         self.troop_coordinates = troop_coordinates
         self.grid_tile_size = grid_tile_size
+        self.instructions = None
+        self.collision = False
+        self.at_target = False
 
     def draw_troop(self, screen, rgb_color: tuple): #rgb color moet een 3delige tuple zijn.
         if self.alive:
@@ -37,9 +40,163 @@ class troop:
         coordinates_of_nearest_building = (x_coordinate_of_nearest_building, y_coordinate_of_nearest_building)
         return coordinates_of_nearest_building
     
+    def find_path(self, grid, visited_locations):
+
+        fifo = queue.Queue()
+        fifo.put(self.troop_coordinates)
+
+        came_from = {}
+        came_from[self.troop_coordinates] = None
+
+        visited = set()
+        visited.add(self.troop_coordinates)
+
+        directions = [(0, 1), (1, 0), (0, -1), (-1, 0)]
+
+        while not fifo.empty():
+            current = fifo.get()
+
+            if isinstance(grid[current[0]][current[1]], buildings.Building):
+
+                # pad reconstrueren (coördinaten)
+                path = []
+                while current is not None:
+                    path.append(current)
+                    current = came_from[current]
+
+                path.reverse()
+
+                # omzetten naar instructions (dx, dy)
+                instructions = []
+                for i in range(len(path) - 1):
+                    dx = path[i+1][0] - path[i][0]
+                    dy = path[i+1][1] - path[i][1]
+                    instructions.append((dx, dy))
+                print(instructions)
+                self.instructions = instructions
+                return visited_locations, instructions
+
+            for direction in directions:
+                new_x = current[0] + direction[0]
+                new_y = current[1] + direction[1]
+                new_coordinates = (new_x, new_y)
+
+                if new_coordinates not in visited:
+                    if 0 <= new_x < self.y_grid_size and 0 <= new_y < self.x_grid_size:
+                        cell = grid[new_x][new_y]
+                        if cell == None or isinstance(cell, buildings.Building):
+                            fifo.put(new_coordinates)
+                            visited.add(new_coordinates)
+                            came_from[new_coordinates] = current
+
+                            visited_locations.append(new_coordinates)
+
+        return visited_locations, []
+    
+    def go_to_building(self, grid, visited_locations):
+        fifo = queue.Queue()
+        fifo.put(self.troop_coordinates)
+        directions = [(0, 1), (1, 0), (0, -1), (-1, 0)]
+
+        visited = set()
+        visited.add(self.troop_coordinates)
+
+        came_from = {}
+        came_from[self.troop_coordinates] = None
+
+        while not fifo.empty():
+            current = fifo.get()
+            if isinstance(grid[current[0]][current[1]], buildings.Building):
+
+                # pad reconstrueren (coördinaten)
+                path = []
+                while current is not None:
+                    path.append(current)
+                    current = came_from[current]
+
+                path.reverse()
+
+                # omzetten naar instructions (dx, dy)
+                instructions = []
+                for i in range(len(path) - 1):
+                    dx = path[i+1][0] - path[i][0]
+                    dy = path[i+1][1] - path[i][1]
+                    instructions.append((dx, dy))
+                print("instructies")
+                print(instructions)
+                return visited_locations, instructions
+
+            for direction in directions:
+                new_coordinates = (self.troop_coordinates[0] + direction[0], self.troop_coordinates[1] + direction[1])
+                fifo.put(new_coordinates)
+
+                if new_coordinates not in visited:
+                    if 0 <= self.troop_coordinates[0] + direction[0] < self.y_grid_size and 0 <= self.troop_coordinates[1] + direction[1] < self.x_grid_size:
+                        if grid[self.troop_coordinates[0] + direction[0]][self.troop_coordinates[1] + direction[1]] == None:
+                            fifo.put(new_coordinates)
+                            visited.add(new_coordinates)
+                            came_from[new_coordinates] = current
+
+                            visited_locations.append(new_coordinates)
+        return visited_locations, []
+      
+    def move(self, path, building):
+        if len(path) >= 1:
+            instruction = path.pop(0)
+            print(instruction)
+            self.troop_coordinates = (self.troop_coordinates[0] + instruction[0], self.troop_coordinates[1] + instruction[1]) 
+        else:
+            self.at_target = True
+        return self.troop_coordinates
+    
+    def check_for_collision(self, grid):
+        directions = [(0, 1), (0, -1), (1, 0), (-1, 0)]
+        x, y = self.troop_coordinates
+
+        for dx, dy in directions:
+            nx = x + dx
+            ny = y + dy
+
+            # ✅ bounds check
+            if 0 <= nx < self.y_grid_size and 0 <= ny < self.x_grid_size:
+                cell = grid[nx][ny]
+
+                # 🎯 alleen geïnteresseerd in buildings
+                if isinstance(cell, buildings.Building):
+                    return True, cell
+
+        # ✅ niets gevonden
+        return False, None
+
+ 
+
+    def take_damage(self, damage):
+        self.health -= damage
+        if self.health <= 0:
+            self.die()
+    
+    def attack(self, building, grid):
+        building.damage(self.attack_damage, grid)
+
+    def die(self):
+        self.alive = False    
+    def remove_object(self):
+        del self
 
 
-    # def find_path(self, coordinates_of_nearest_building: tuple, grid, visited_locations):
+
+    """ def check_for_collision2(self, grid):  #LANDER BIJ COLLISION MOGEN ER GEEN 2 OBJECTEN IN DEZELFDE TILE ZITTEN !!!!!!!!!!!!!!!!!!!!!!!!!!
+        directions = [(0, 1), (0, -1), (1, 0), (-1, 0)]
+        for direction in directions:
+            if grid[self.troop_coordinates[0] + direction[0]][self.troop_coordinates[1] + direction[1]] != None:
+                if isinstance(grid[self.troop_coordinates[0] + direction[0]][self.troop_coordinates[1] + direction[1]], buildings.Building):
+                    print(grid[self.troop_coordinates[0] + direction[0]][self.troop_coordinates[1] + direction[1]])
+                    return True, grid[self.troop_coordinates[0] + direction[0]][self.troop_coordinates[1] + direction[1]]
+            else:
+                return False, None """    
+
+    """
+     def find_path(self, coordinates_of_nearest_building: tuple, grid, visited_locations):
     #     print(grid)
     #     instructions = []
     #     fifo = queue.Queue()
@@ -80,10 +237,11 @@ class troop:
     #                             print(instructions)
     #                             return path, instructions
     #     return [], []
+    """
 
-    
+    """
     #deze functie zoekt een pad van de huidige positie naar de positie bepaald in de find_nearest_building() functie.  
-    def find_path(self, coordinates_of_nearest_building: tuple, grid, visited_locations): #sava, grid system moet een geneste lijst zijn met waarden voor wat er op iedere pixel staat, een 0 voor leeg, een 1 voor een troep, een 2 voor een gebouw
+    def find_path2(self, coordinates_of_nearest_building: tuple, grid, visited_locations): #sava, grid system moet een geneste lijst zijn met waarden voor wat er op iedere pixel staat, een 0 voor leeg, een 1 voor een troep, een 2 voor een gebouw
         instructions = []
         fifo = queue.Queue()
         #path = [self.troop_coordinates]
@@ -111,7 +269,7 @@ class troop:
         visited_locations.append(coordinates_of_nearest_building)
         return visited_locations, instructions
             
-    """def move_2(self, troop_coordinates, building, grid_system):
+    def move_2(self, troop_coordinates, building, grid_system):
         try:
             coordinates_of_nearest_building = (building.x, building.y)
             path, instructions = self.find_path(troop_coordinates, coordinates_of_nearest_building, grid_system)
@@ -122,34 +280,10 @@ class troop:
             troop_coordinates = (troop_coordinates[0], troop_coordinates[1])
             self.die()
             return troop_coordinates"""
-        
-    def move(self, path, building):
-        if len(path) >= 1:
-            instruction = path.pop(0)
-            print(instruction)
-            self.troop_coordinates = (self.troop_coordinates[0] + instruction[0], self.troop_coordinates[1] + instruction[1]) 
-        else:
-            self.attack(building, self.attack_damage)
-        return self.troop_coordinates
-    
-    def check_for_collision(self):
-        print("PLACEHOLDER")
-        
-    def take_damage(self, damage):
-        self.health -= damage
-        if self.health <= 0:
-            self.die()
-    
-    def attack(self, building: buildings.Building):
-        building.damage(self.attack_damage)
-
-    def die(self):
-        self.alive = False    
-    def remove_object(self):
-        del self
 
 class terrorist(troop):
     def __init__(self, health: int, speed : int, grid_dimentions: tuple, attack_damage: int, troop_size: float, troop_coordinates: tuple, grid_tile_size:int):
+        super().__init__(health, speed, grid_dimentions, attack_damage, troop_size, troop_coordinates, grid_tile_size)
         self.alive = True
         self.health = 1
         self.speed = 5
@@ -160,14 +294,14 @@ class terrorist(troop):
         self.troop_coordinates = troop_coordinates
         self.grid_tile_size = grid_tile_size
 
-    def move(self, path, building):
+    def move(self, path, building, grid):
         if len(path) >= 1:
             instruction = path.pop(0)
             print(instruction)
             self.troop_coordinates = (self.troop_coordinates[0] + instruction[0], self.troop_coordinates[1] + instruction[1]) 
         else:
+            self.attack(building, grid)
             self.die()
-            self.attack(building)
         return self.troop_coordinates
     
 class big_troop(troop):
