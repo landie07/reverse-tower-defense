@@ -11,19 +11,16 @@ clock = pygame.time.Clock()
 
 troop_speed = 50
 troop_pos_x, troop_pos_y = 5, 5
-troop_coordinates = (troop_pos_x, troop_pos_y)
+troop_coordinates_terrorist = (5, 5)
+troop_coordinates_big_troop = (5, 10)
+troop_coordinates_small_troop = (10, 5)
 troops = []
 Buildings =  []
 
-terrorist = troop_classes.terrorist(50, 2, (settings.grid_width, settings.grid_height), 50, 5, troop_coordinates, settings.grid_tile_size)
-terrorist1 = troop_classes.terrorist(50, 2, (settings.grid_width, settings.grid_height), 50, 5, troop_coordinates, settings.grid_tile_size)
-terrorist2 = troop_classes.terrorist(50, 2, (settings.grid_width, settings.grid_height), 50, 5, troop_coordinates, settings.grid_tile_size)
+terrorist = troop_classes.terrorist(50, 2, (settings.grid_width, settings.grid_height), 50, 5, troop_coordinates_terrorist, settings.grid_tile_size)
+big_troop = troop_classes.big_troop(50, 2, (settings.grid_width, settings.grid_height), 50, 5, troop_coordinates_big_troop, settings.grid_tile_size)
+small_troop = troop_classes.small_troop(50, 2, (settings.grid_width, settings.grid_height), 50, 5, troop_coordinates_small_troop, settings.grid_tile_size)
 
-big_troop = troop_classes.big_troop(50, 2, (settings.grid_width, settings.grid_height), 50, 5, troop_coordinates, settings.grid_tile_size)
-
-troops.append(terrorist)
-troops.append(terrorist1)
-troops.append(terrorist2)
 
 Buildings =  []
 
@@ -55,7 +52,8 @@ def create_maze(dim, saturation):
             if waarde > saturation*10:
                 maze[x].append(None)
             else:
-                maze[x].append(buildings.Wall(x * settings.grid_tile_size, y * settings.grid_tile_size, 0))
+                maze[x].insert(y, buildings.Wall(x * settings.grid_tile_size, y * settings.grid_tile_size, 0))
+
     #make an edge around
    # maze[building_1.x//settings.grid_tile_size, building_1.y//settings.grid_tile_size] = 1
     #[1, 1] = 0
@@ -69,9 +67,18 @@ def create_maze(dim, saturation):
         print("")
     return maze
 
-grid = create_maze(settings.grid_width, 4)
-#grid[5].append(terrorist1)
-grid[3].append(big_troop)
+grid = create_maze(settings.grid_width, 10)
+
+"""
+troop_coordinates_terrorist = (5, 5)
+troop_coordinates_big_troop = (5, 10)
+troop_coordinates_small_troop = (10, 5)
+"""
+
+grid[troop_coordinates_terrorist[0]].insert(troop_coordinates_terrorist[1], terrorist)
+grid[troop_coordinates_big_troop[0]].insert(troop_coordinates_big_troop[1], big_troop)
+grid[troop_coordinates_small_troop[0]].insert(troop_coordinates_small_troop[1], small_troop)
+
 running = True
 while running:
     clock.tick(settings.ticks_per_second)
@@ -91,7 +98,7 @@ while running:
                         print("alive is true")
                         cel.draw_troop(screen, (255,255,255))
                     if isinstance(cel, troop_classes.terrorist):
-                        if cel.instructions == None or len(cel.instructions) == 0:
+                        if (cel.instructions == None or len(cel.instructions) == 0) and cel.alive == True:
                             visited_locations, path_to_nearest_building = cel.find_path(grid, visited_locations) 
                             print(path_to_nearest_building)
                             collision_bool, collision_object = cel.check_for_collision(grid)
@@ -99,10 +106,12 @@ while running:
                             print(collision_bool)
                             if collision_bool == True and isinstance(collision_object, buildings.Building):
                                 print("damage doen")
-                                collision_object.damage(cel.attack_damage, grid)     
-                        cel.troop_coordinates = cel.move(path_to_nearest_building, building_1, grid)
+                                collision_object.damage(cel.attack_damage, grid)  
+                                cel.die(grid)  
+                        if cel.alive == True: 
+                            cel.troop_coordinates = cel.move(path_to_nearest_building, building_1, grid)
                     if isinstance(cel, troop_classes.big_troop):
-                        if cel.instructions == None or len(cel.instructions) == 0:
+                        if cel.instructions == None or len(cel.instructions) == 0 and cel.alive == True:
                             visited_locations, path_to_nearest_building = cel.find_path(grid, visited_locations) 
                             print(path_to_nearest_building)
                             collision_bool, collision_object = cel.check_for_collision(grid)
@@ -111,8 +120,22 @@ while running:
                             print(collision_object)
                             if collision_bool == True and isinstance(collision_object, buildings.Building):
                                 print("damage doen")
-                                collision_object.damage(cel.attack_damage, grid)     
-                        cel.troop_coordinates = cel.move(path_to_nearest_building, building_1, grid)
+                                collision_object.damage(cel.attack_damage, grid)  
+                        if cel.alive == True:    
+                            cel.troop_coordinates = cel.move(path_to_nearest_building, building_1, grid)
+                    if isinstance(cel, troop_classes.small_troop):
+                        if cel.instructions == None or len(cel.instructions) == 0  and cel.alive == True:
+                            visited_locations, path_to_nearest_building = cel.find_path(grid, visited_locations) 
+                            print(path_to_nearest_building)
+                            collision_bool, collision_object = cel.check_for_collision(grid)
+                            print("collision_Bool:")
+                            print(collision_bool)
+                            print(collision_object)
+                            if collision_bool == True and isinstance(collision_object, buildings.Building):
+                                print("damage doen")
+                                collision_object.damage(cel.attack_damage, grid)
+                        if cel.alive == True:      
+                            cel.troop_coordinates = cel.move(path_to_nearest_building, building_1, grid)
     pygame.display.flip()
 
 pygame.quit()

@@ -177,13 +177,14 @@ class troop:
     def attack(self, building, grid):
         building.damage(self.attack_damage, grid)
 
-    def die(self):
+    def die(self, grid):
         self.alive = False 
         print(self.alive)  
         print("troep gestorven") 
+        self.remove_object(grid)
 
-    def remove_object(self):
-        del self
+    def remove_object(self, grid):
+        grid[self.troop_coordinates[0]][self.troop_coordinates[1]] = None
 
 
 
@@ -289,27 +290,27 @@ class terrorist(troop):
         self.alive = True
         self.health = 1
         self.speed = 5
-        self.attack_damage = 30
-        self.troop_size = 3
+        self.attack_damage = 30*1000
+        self.troop_size = 3.5
         self.grid_dimentions = grid_dimentions
         self.x_grid_size, self.y_grid_size = self.grid_dimentions
         self.troop_coordinates = troop_coordinates
         self.grid_tile_size = grid_tile_size
-        self.rgb_color = (255, 255, 255)
+        self.rgb_color = (255, 0, 0)
 
     def draw_troop(self, screen, rgb_color: tuple): #rgb color moet een 3delige tuple zijn.
         if self.alive:
             pygame.draw.circle(screen, self.rgb_color, (self.troop_coordinates[0] * self.grid_tile_size, self.troop_coordinates[1] * self.grid_tile_size), self.troop_size)
 
-    def move(self, path, building, grid):
+    """ def move(self, path, building, grid):
         if len(path) >= 1:
             instruction = path.pop(0)
             print(instruction)
             self.troop_coordinates = (self.troop_coordinates[0] + instruction[0], self.troop_coordinates[1] + instruction[1]) 
         else:
-            self.attack(building, grid)
+            building.damage(self.attack_damage, grid)
             self.die()
-        return self.troop_coordinates
+        return self.troop_coordinates"""
     
 class big_troop(troop):
     def __init__(self, health: int, speed : int, grid_dimentions: tuple, attack_damage: int, troop_size: float, troop_coordinates: tuple, grid_tile_size):
@@ -317,24 +318,31 @@ class big_troop(troop):
         self.alive = True
         self.health = 50
         self.speed = 1
-        self.attack_damage = 20
+        self.attack_damage = 20*100
         self.troop_size = 7
         self.grid_dimentions = grid_dimentions
         self.x_grid_size, self.y_grid_size = self.grid_dimentions
         self.troop_coordinates = troop_coordinates
-        self.rgb_color = (255, 255, 255)
+        self.rgb_color = (0, 255, 0)
 
     def draw_troop(self, screen, rgb_color: tuple): #rgb color moet een 3delige tuple zijn.
         if self.alive:
             pygame.draw.circle(screen, self.rgb_color, (self.troop_coordinates[0] * settings.grid_tile_size, self.troop_coordinates[1] * settings.grid_tile_size), self.troop_size)
 
 class small_troop(troop):
-    def __init__(self, health: int, speed : int, grid_dimentions: tuple, attack_damage: int, troop_size: float, troop_coordinates: tuple):
+    def __init__(self, health: int, speed : int, grid_dimentions: tuple, attack_damage: int, troop_size: float, troop_coordinates: tuple, grid_tile_size):
+        super().__init__(health, speed, grid_dimentions, attack_damage, troop_size, troop_coordinates, grid_tile_size)
         self.alive = True
         self.health = 15
         self.speed = 4
-        self.attack_damage = 5
-        self.troop_size = 4
+        self.attack_damage = 5*100
+        self.troop_size = 2
         self.grid_dimentions = grid_dimentions
         self.x_grid_size, self.y_grid_size = self.grid_dimentions
         self.troop_coordinates = troop_coordinates
+        self.rgb_color = (0, 0, 255)
+
+    def draw_troop(self, screen, rgb_color: tuple): #rgb color moet een 3delige tuple zijn.
+        if self.alive:
+            pygame.draw.circle(screen, self.rgb_color, (self.troop_coordinates[0] * self.grid_tile_size, self.troop_coordinates[1] * self.grid_tile_size), self.troop_size)
+
