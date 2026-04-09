@@ -24,8 +24,8 @@ small_troop = troop_classes.small_troop(50, 2, (settings.grid_width, settings.gr
 
 Buildings =  []
 
-building_1 = buildings.Wall(6 * settings.grid_tile_size, 6 * settings.grid_tile_size, 0)
-Buildings.append(building_1)
+#building_1 = buildings.Wall(6 * settings.grid_tile_size, 6 * settings.grid_tile_size, 0)
+#Buildings.append(building_1)
 visited_locations = []
 
 
@@ -67,7 +67,7 @@ def create_maze(dim, saturation):
         print("")
     return maze
 
-grid = create_maze(settings.grid_width, 10)
+grid = create_maze(settings.grid_width, 15)
 
 """
 troop_coordinates_terrorist = (5, 5)
@@ -109,7 +109,7 @@ while running:
                                 collision_object.damage(cel.attack_damage, grid)  
                                 cel.die(grid)  
                         if cel.alive == True: 
-                            cel.troop_coordinates = cel.move(path_to_nearest_building, building_1, grid)
+                            cel.troop_coordinates = cel.move(path_to_nearest_building, grid)
                     if isinstance(cel, troop_classes.big_troop):
                         if cel.instructions == None or len(cel.instructions) == 0 and cel.alive == True:
                             visited_locations, path_to_nearest_building = cel.find_path(grid, visited_locations) 
@@ -122,7 +122,7 @@ while running:
                                 print("damage doen")
                                 collision_object.damage(cel.attack_damage, grid)  
                         if cel.alive == True:    
-                            cel.troop_coordinates = cel.move(path_to_nearest_building, building_1, grid)
+                            cel.troop_coordinates = cel.move(path_to_nearest_building,  grid)
                     if isinstance(cel, troop_classes.small_troop):
                         if cel.instructions == None or len(cel.instructions) == 0  and cel.alive == True:
                             visited_locations, path_to_nearest_building = cel.find_path(grid, visited_locations) 
@@ -135,7 +135,7 @@ while running:
                                 print("damage doen")
                                 collision_object.damage(cel.attack_damage, grid)
                         if cel.alive == True:      
-                            cel.troop_coordinates = cel.move(path_to_nearest_building, building_1, grid)
+                            cel.troop_coordinates = cel.move(path_to_nearest_building, grid)
     pygame.display.flip()
 
 pygame.quit()

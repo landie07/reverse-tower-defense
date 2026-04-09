@@ -140,7 +140,7 @@ class troop:
                             visited_locations.append(new_coordinates)
         return visited_locations, []
       
-    def move(self, path, building, grid):
+    def move(self, path, grid):
         if len(path) >= 1:
             instruction = path.pop(0)
             print(instruction)
@@ -161,10 +161,14 @@ class troop:
             # bounds check
             if 0 <= nx < self.x_grid_size and 0 <= ny < self.y_grid_size:
                 cell = grid[nx][ny]
+                if isinstance(cell, buildings.Building):
+                    return True, cell             
 
+            """
                 if cell is not None:
                     return True, cell
-
+            """
+                
         return False, None
 
  
