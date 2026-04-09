@@ -19,6 +19,8 @@ terrorist = troop_classes.terrorist(50, 2, (settings.grid_width, settings.grid_h
 terrorist1 = troop_classes.terrorist(50, 2, (settings.grid_width, settings.grid_height), 50, 5, troop_coordinates, settings.grid_tile_size)
 terrorist2 = troop_classes.terrorist(50, 2, (settings.grid_width, settings.grid_height), 50, 5, troop_coordinates, settings.grid_tile_size)
 
+big_troop = troop_classes.big_troop(50, 2, (settings.grid_width, settings.grid_height), 50, 5, troop_coordinates, settings.grid_tile_size)
+
 troops.append(terrorist)
 troops.append(terrorist1)
 troops.append(terrorist2)
@@ -85,6 +87,7 @@ while running:
                         cel.draw(screen)
                 if isinstance(cel, troop_classes.troop):
                     if cel.alive:
+                        print("alive is true")
                         cel.draw_troop(screen, (255,255,255))
                     if isinstance(cel, troop_classes.terrorist):
                         if cel.instructions == None or str(cel.instructions) == 0:
@@ -96,7 +99,7 @@ while running:
                             if collision_bool == True and isinstance(collision_object, buildings.Building):
                                 print("damage doen")
                                 collision_object.damage(cel.attack_damage, grid)     
-                        cel.troop_coordinates = terrorist.move(path_to_nearest_building, building_1, grid)
+                        cel.troop_coordinates = cel.move(path_to_nearest_building, building_1, grid)
     pygame.display.flip()
 
 pygame.quit()

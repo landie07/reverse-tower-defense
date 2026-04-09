@@ -179,7 +179,10 @@ class troop:
         building.damage(self.attack_damage, grid)
 
     def die(self):
-        self.alive = False    
+        self.alive = False 
+        print(self.alive)  
+        print("troep gestorven") 
+
     def remove_object(self):
         del self
 
