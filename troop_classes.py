@@ -2,6 +2,9 @@ import queue
 import pygame
 import buildings
 import math
+import settings as settings_file
+
+settings = settings_file.settings()
 
 class troop:
     def __init__(self, health: int, speed : int, grid_dimentions: tuple, attack_damage: int, troop_size: int, troop_coordinates: tuple, grid_tile_size:int):
@@ -17,10 +20,6 @@ class troop:
         self.instructions = None
         self.collision = False
         self.at_target = False
-
-    def draw_troop(self, screen, rgb_color: tuple): #rgb color moet een 3delige tuple zijn.
-        if self.alive:
-            pygame.draw.circle(screen, rgb_color, (self.troop_coordinates[0] * self.grid_tile_size, self.troop_coordinates[1] * self.grid_tile_size), self.troop_size)
 
     def find_nearest_building(self, buildings: list): #idris, sava: troop_coordinates is een tuple!
         x_coordinate_of_nearest_building = 2 + self.x_grid_size * 2 
@@ -74,6 +73,7 @@ class troop:
                     instructions.append((dx, dy))
                 print(instructions)
                 self.instructions = instructions
+                del instructions[-1]
                 return visited_locations, instructions
 
             for direction in directions:
@@ -140,7 +140,7 @@ class troop:
                             visited_locations.append(new_coordinates)
         return visited_locations, []
       
-    def move(self, path, building):
+    def move(self, path, building, grid):
         if len(path) >= 1:
             instruction = path.pop(0)
             print(instruction)
@@ -150,22 +150,21 @@ class troop:
         return self.troop_coordinates
     
     def check_for_collision(self, grid):
-        directions = [(0, 1), (0, -1), (1, 0), (-1, 0)]
         x, y = self.troop_coordinates
+
+        directions = [(1, 0), (-1, 0), (0, 1), (0, -1)]
 
         for dx, dy in directions:
             nx = x + dx
             ny = y + dy
 
-            # ✅ bounds check
-            if 0 <= nx < self.y_grid_size and 0 <= ny < self.x_grid_size:
+            # bounds check
+            if 0 <= nx < self.x_grid_size and 0 <= ny < self.y_grid_size:
                 cell = grid[nx][ny]
 
-                # 🎯 alleen geïnteresseerd in buildings
-                if isinstance(cell, buildings.Building):
+                if cell is not None:
                     return True, cell
 
-        # ✅ niets gevonden
         return False, None
 
  
@@ -296,6 +295,11 @@ class terrorist(troop):
         self.x_grid_size, self.y_grid_size = self.grid_dimentions
         self.troop_coordinates = troop_coordinates
         self.grid_tile_size = grid_tile_size
+        self.rgb_color = (255, 255, 255)
+
+    def draw_troop(self, screen, rgb_color: tuple): #rgb color moet een 3delige tuple zijn.
+        if self.alive:
+            pygame.draw.circle(screen, self.rgb_color, (self.troop_coordinates[0] * self.grid_tile_size, self.troop_coordinates[1] * self.grid_tile_size), self.troop_size)
 
     def move(self, path, building, grid):
         if len(path) >= 1:
@@ -308,15 +312,21 @@ class terrorist(troop):
         return self.troop_coordinates
     
 class big_troop(troop):
-    def __init__(self, health: int, speed : int, grid_dimentions: tuple, attack_damage: int, troop_size: float, troop_coordinates: tuple):
+    def __init__(self, health: int, speed : int, grid_dimentions: tuple, attack_damage: int, troop_size: float, troop_coordinates: tuple, grid_tile_size):
+        super().__init__(health, speed, grid_dimentions, attack_damage, troop_size, troop_coordinates, grid_tile_size)
         self.alive = True
         self.health = 50
         self.speed = 1
         self.attack_damage = 20
-        self.troop_size = 10
+        self.troop_size = 7
         self.grid_dimentions = grid_dimentions
         self.x_grid_size, self.y_grid_size = self.grid_dimentions
         self.troop_coordinates = troop_coordinates
+        self.rgb_color = (255, 255, 255)
+
+    def draw_troop(self, screen, rgb_color: tuple): #rgb color moet een 3delige tuple zijn.
+        if self.alive:
+            pygame.draw.circle(screen, self.rgb_color, (self.troop_coordinates[0] * settings.grid_tile_size, self.troop_coordinates[1] * settings.grid_tile_size), self.troop_size)
 
 class small_troop(troop):
     def __init__(self, health: int, speed : int, grid_dimentions: tuple, attack_damage: int, troop_size: float, troop_coordinates: tuple):

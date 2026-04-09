@@ -22,6 +22,7 @@ class Building:
             for i, e in enumerate(row):
                 if e is self:
                     row[i] = None
+                    print("gebouw gestorven")
                     return
 
 class Wall(Building):

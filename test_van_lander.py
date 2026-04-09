@@ -70,7 +70,8 @@ def create_maze(dim, saturation):
     return maze
 
 grid = create_maze(settings.grid_width, 4)
-grid[5].append(terrorist1)
+#grid[5].append(terrorist1)
+grid[3].append(big_troop)
 running = True
 while running:
     clock.tick(settings.ticks_per_second)
@@ -90,7 +91,7 @@ while running:
                         print("alive is true")
                         cel.draw_troop(screen, (255,255,255))
                     if isinstance(cel, troop_classes.terrorist):
-                        if cel.instructions == None or str(cel.instructions) == 0:
+                        if cel.instructions == None or len(cel.instructions) == 0:
                             visited_locations, path_to_nearest_building = cel.find_path(grid, visited_locations) 
                             print(path_to_nearest_building)
                             collision_bool, collision_object = cel.check_for_collision(grid)
@@ -100,31 +101,19 @@ while running:
                                 print("damage doen")
                                 collision_object.damage(cel.attack_damage, grid)     
                         cel.troop_coordinates = cel.move(path_to_nearest_building, building_1, grid)
+                    if isinstance(cel, troop_classes.big_troop):
+                        if cel.instructions == None or len(cel.instructions) == 0:
+                            visited_locations, path_to_nearest_building = cel.find_path(grid, visited_locations) 
+                            print(path_to_nearest_building)
+                            collision_bool, collision_object = cel.check_for_collision(grid)
+                            print("collision_Bool:")
+                            print(collision_bool)
+                            print(collision_object)
+                            if collision_bool == True and isinstance(collision_object, buildings.Building):
+                                print("damage doen")
+                                collision_object.damage(cel.attack_damage, grid)     
+                        cel.troop_coordinates = cel.move(path_to_nearest_building, building_1, grid)
     pygame.display.flip()
 
 pygame.quit()
-
-
-
-# for troop in troops:
-#         if terrorist.alive:
-#             terrorist.draw_troop(screen, (255,255,255))
-#             print("alive")
-#         if settings.tick >= settings.ticks_per_second/troop.speed:
-#             settings.tick = 0
-#             if troop.instructions == None:
-#                 visited_locations, path_to_nearest_building = troop.find_path(grid, visited_locations)
-#             elif len(troop.instructions) == 0:
-#                 visited_locations, path_to_nearest_building = troop.find_path(grid, visited_locations)
-#             else:
-#                 print("troop.instructions:")
-#                 print("'"+str(troop.instructions)+"'")
-#         #    visited_locations, path_to_nearest_building = terrorist.go_to_building(grid, visited_locations) 
-#         #    visited_locations, path_to_nearest_building = terrorist.find_path(coordinates_of_nearest_building, grid, visited_locations)
-#             troop.troop_coordinates = terrorist.move(path_to_nearest_building, building_1, grid)
-#     for building in Buildings:
-#         building.draw(screen)
-
-
-
 
