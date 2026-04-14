@@ -1,6 +1,8 @@
 import pygame
 import queue
 import math
+from buildings import *
+from prototype_troops import *
 
 pygame.init()
 
@@ -9,7 +11,7 @@ pygame.init()
 # =========================================================
 grid_rows = 10
 grid_cols = 10
-grid_tile_size = 80
+grid_tile_size = 60
 ui_height = 160
 
 screen_width = grid_cols * grid_tile_size
@@ -47,325 +49,6 @@ def make_grid(surface, normal_color, spawn_color, height_block, width_block, hei
             pygame.draw.rect(surface, (80, 80, 80), block, 1)  # 1 is de dikte van border
 
 # =========================================================
-"BUILDING CLASSES"
-# =========================================================
-class building:
-    color = (150, 100, 50)
-
-    def tick(self, grid):
-        pass
-
-    def draw(self, screen, tile_size):
-        px = self.y * tile_size
-        py = self.x * tile_size
-
-        rect = pygame.Rect(px + 5, py + 5, tile_size - 10, tile_size - 10)
-        pygame.draw.rect(screen, self.color, rect)
-
-    @property
-    def coordinates(self):
-        return (self.x, self.y)
-
-    def damage(self, hp, grid):
-        self.hp -= hp
-        if self.hp > 0:
-            return False
-
-        for row in grid:
-            for i, e in enumerate(row):
-                if e is self:
-                    row[i] = None
-                    print("gebouw gestorven")
-                    return True
-        return True
-
-
-class wall(building):
-    hp = 200
-    color = (220, 220, 220)
-
-    def __init__(self, x, y):
-        self.x = x
-        self.y = y
-        self.hp = wall.hp
-
-    def draw(self, screen, tile_size):
-        px = self.y * tile_size
-        py = self.x * tile_size
-
-        rect = pygame.Rect(px + 12, py + 28, tile_size - 24, tile_size - 56)
-        pygame.draw.rect(screen, self.color, rect)
-
-
-class tower(building):
-    hp = 100
-    range = 4
-    damage_hp = 5
-    shot_cooldown_max = 45
-    color = (153, 85, 12)
-
-    def __init__(self, x, y):
-        self.x = x
-        self.y = y
-        self.hp = tower.hp
-        self.shot_cooldown = tower.shot_cooldown_max
-        self.target = None
-
-    def find_target(self, troops):
-        nearest_troop = None
-        nearest_dst = 999999
-
-        for current_troop in troops:
-            if not current_troop.alive:
-                continue
-
-            tx, ty = current_troop.troop_coordinates
-            dst = math.sqrt((self.x - tx) ** 2 + (self.y - ty) ** 2)
-
-            if dst <= self.range and dst < nearest_dst:
-                nearest_dst = dst
-                nearest_troop = current_troop
-
-        self.target = nearest_troop
-
-    def tick(self, grid, troops):
-        if self.shot_cooldown > 0:
-            self.shot_cooldown -= 1
-            return
-
-        self.shot_cooldown = tower.shot_cooldown_max
-        self.find_target(troops)
-
-        if self.target is not None and self.target.alive:
-            self.target.take_damage(self.damage_hp, grid)
-
-    def draw(self, screen, tile_size):
-        super().draw(screen, tile_size)
-        px = self.y * tile_size + tile_size // 2
-        py = self.x * tile_size + tile_size // 2
-        pygame.draw.circle(screen, (90, 50, 10), (px, py), 8)
-
-
-class landmine(building):
-    hp = 1
-    trigger_range = 1
-    damage_hp = 20
-    color = (110, 122, 7)
-
-    def __init__(self, x, y):
-        self.x = x
-        self.y = y
-        self.hp = landmine.hp
-
-    def tick(self, grid, troops):
-        should_explode = False
-
-        for current_troop in troops:
-            if not current_troop.alive:
-                continue
-
-            tx, ty = current_troop.troop_coordinates
-            distance = abs(self.x - tx) + abs(self.y - ty)
-
-            if distance <= self.trigger_range:
-                should_explode = True
-                break
-
-        if not should_explode:
-            return
-
-        for current_troop in troops:
-            if not current_troop.alive:
-                continue
-
-            tx, ty = current_troop.troop_coordinates
-            distance = abs(self.x - tx) + abs(self.y - ty)
-
-            if distance <= self.trigger_range:
-                current_troop.take_damage(self.damage_hp, grid)
-
-        self.damage(999999, grid)
-
-    def draw(self, screen, tile_size):
-        super().draw(screen, tile_size)
-        px = self.y * tile_size + tile_size // 2
-        py = self.x * tile_size + tile_size // 2
-        pygame.draw.circle(screen, (50, 70, 0), (px, py), 6)
-
-# =========================================================
-"TROOP CLASSES"
-# =========================================================
-class troop:
-    def __init__(self, health, speed, grid_dimentions, attack_damage, troop_size, troop_coordinates, grid_tile_size):
-        self.alive = True
-        self.health = health
-        self.speed = speed
-        self.attack_damage = attack_damage
-        self.grid_dimentions = grid_dimentions
-        self.x_grid_size, self.y_grid_size = self.grid_dimentions
-        self.troop_size = troop_size
-        self.troop_coordinates = troop_coordinates
-        self.grid_tile_size = grid_tile_size
-        self.instructions = []
-        self.collision = False
-        self.at_target = False
-
-    def find_path(self, grid, visited_locations):
-        fifo = queue.Queue()
-        fifo.put(self.troop_coordinates)
-
-        came_from = {}
-        came_from[self.troop_coordinates] = None
-
-        visited = set()
-        visited.add(self.troop_coordinates)
-
-        directions = [(0, 1), (1, 0), (0, -1), (-1, 0)]
-
-        while not fifo.empty():
-            current = fifo.get()
-
-            if isinstance(grid[current[0]][current[1]], building):
-                path = []
-                while current is not None:
-                    path.append(current)
-                    current = came_from[current]
-
-                path.reverse()
-
-                instructions = []
-                for i in range(len(path) - 1):
-                    dx = path[i + 1][0] - path[i][0]
-                    dy = path[i + 1][1] - path[i][1]
-                    instructions.append((dx, dy))
-
-                if len(instructions) > 0:
-                    instructions.pop()
-
-                self.instructions = instructions[:]
-                return visited_locations, instructions
-
-            for direction in directions:
-                new_x = current[0] + direction[0]
-                new_y = current[1] + direction[1]
-                new_coordinates = (new_x, new_y)
-
-                if new_coordinates not in visited:
-                    if 0 <= new_x < self.x_grid_size and 0 <= new_y < self.y_grid_size:
-                        cell = grid[new_x][new_y]
-                        if cell is None or isinstance(cell, building):
-                            fifo.put(new_coordinates)
-                            visited.add(new_coordinates)
-                            came_from[new_coordinates] = current
-                            visited_locations.append(new_coordinates)
-
-        return visited_locations, []
-
-    def move(self, path, grid):
-        if len(path) >= 1:
-            old_x, old_y = self.troop_coordinates
-            instruction = path.pop(0)
-            new_x = old_x + instruction[0]
-            new_y = old_y + instruction[1]
-
-            if grid[old_x][old_y] is self:
-                grid[old_x][old_y] = None
-
-            self.troop_coordinates = (new_x, new_y)
-            grid[new_x][new_y] = self
-        else:
-            self.at_target = True
-
-        return self.troop_coordinates
-
-    def check_for_collision(self, grid):
-        x, y = self.troop_coordinates
-        directions = [(1, 0), (-1, 0), (0, 1), (0, -1)]
-
-        for dx, dy in directions:
-            nx = x + dx
-            ny = y + dy
-
-            if 0 <= nx < self.x_grid_size and 0 <= ny < self.y_grid_size:
-                cell = grid[nx][ny]
-                if isinstance(cell, building):
-                    return True, cell
-
-        return False, None
-
-    def take_damage(self, damage, grid=None):
-        self.health -= damage
-        if self.health <= 0:
-            self.die(grid)
-
-    def attack(self, target_building, grid):
-        destroyed = target_building.damage(self.attack_damage, grid)
-        return destroyed
-
-    def die(self, grid=None):
-        self.alive = False
-        if grid is not None:
-            self.remove_object(grid)
-
-    def remove_object(self, grid):
-        x, y = self.troop_coordinates
-        if grid[x][y] is self:
-            grid[x][y] = None
-
-
-class terrorist(troop):
-    def __init__(self, health, speed, grid_dimentions, attack_damage, troop_size, troop_coordinates, grid_tile_size):
-        super().__init__(health, speed, grid_dimentions, attack_damage, troop_size, troop_coordinates, grid_tile_size)
-        self.health = 1
-        self.speed = 5
-        self.attack_damage = 999999
-        self.troop_size = 10
-        self.rgb_color = (255, 0, 0)
-
-    def draw_troop(self, screen, rgb_color):
-        if self.alive:
-            x = self.troop_coordinates[1] * self.grid_tile_size + self.grid_tile_size // 2
-            y = self.troop_coordinates[0] * self.grid_tile_size + self.grid_tile_size // 2
-            pygame.draw.circle(screen, self.rgb_color, (x, y), self.troop_size)
-
-    def attack(self, target_building, grid):
-        destroyed = target_building.damage(self.attack_damage, grid)
-        self.die(grid)
-        return destroyed
-
-
-class big_troop(troop):
-    def __init__(self, health, speed, grid_dimentions, attack_damage, troop_size, troop_coordinates, grid_tile_size):
-        super().__init__(health, speed, grid_dimentions, attack_damage, troop_size, troop_coordinates, grid_tile_size)
-        self.health = 50
-        self.speed = 1
-        self.attack_damage = 2000
-        self.troop_size = 12
-        self.rgb_color = (0, 255, 0)
-
-    def draw_troop(self, screen, rgb_color):
-        if self.alive:
-            x = self.troop_coordinates[1] * self.grid_tile_size + self.grid_tile_size // 2
-            y = self.troop_coordinates[0] * self.grid_tile_size + self.grid_tile_size // 2
-            pygame.draw.circle(screen, self.rgb_color, (x, y), self.troop_size)
-
-
-class small_troop(troop):
-    def __init__(self, health, speed, grid_dimentions, attack_damage, troop_size, troop_coordinates, grid_tile_size):
-        super().__init__(health, speed, grid_dimentions, attack_damage, troop_size, troop_coordinates, grid_tile_size)
-        self.health = 15
-        self.speed = 4
-        self.attack_damage = 500
-        self.troop_size = 8
-        self.rgb_color = (0, 0, 255)
-
-    def draw_troop(self, screen, rgb_color):
-        if self.alive:
-            x = self.troop_coordinates[1] * self.grid_tile_size + self.grid_tile_size // 2
-            y = self.troop_coordinates[0] * self.grid_tile_size + self.grid_tile_size // 2
-            pygame.draw.circle(screen, self.rgb_color, (x, y), self.troop_size)
-
-# =========================================================
 "GAME VARIABLES"
 # =========================================================
 grid = [[None for col in range(grid_cols)] for row in range(grid_rows)]
@@ -379,25 +62,48 @@ troop_costs = {
     "terrorist": 4
 }
 
+
 preplaced_buildings = [
-    tower(2, 2),
-    tower(2, 5),
-    tower(2, 7),
-    landmine(3, 4),
-    wall(3, 5),
-    landmine(4, 6),
-    wall(4, 5),
-    tower(5, 5),
-    wall(5, 4),
-    landmine(5, 7),
-    tower(7, 2),
-    wall(7, 3),
-    tower(7, 6),
-    landmine(6, 4)
+    Tower(4, 4),
+    Tower(4, 5),
+    Tower(5, 4),
+    Tower(5, 5),
+    Wall(3, 3),
+    Wall(4, 3),
+    Wall(5, 3),
+    Wall(6, 3),
+    Wall(6, 4),
+    Wall(6, 5),
+    Wall(6, 6),
+    Wall(5, 6),
+    Wall(4, 6),
+    Wall(3, 6),
+    Wall(3, 5),
+    Wall(3, 4),
+    Landmine(2, 2),
+    Landmine(3, 2),
+    Landmine(4, 2),
+    Landmine(5, 2),
+    Landmine(6, 2),
+    Landmine(7, 2),
+    Landmine(7, 3),
+    Landmine(7, 4),
+    Landmine(7, 5),
+    Landmine(7, 6),
+    Landmine(7, 7),
+    Landmine(6, 7),
+    Landmine(5, 7),
+    Landmine(4, 7),
+    Landmine(3, 7),
+    Landmine(2, 7),
+    Landmine(2, 6),
+    Landmine(2, 5),
+    Landmine(2, 4),
+    Landmine(2, 3),
 ]
 
 for current_building in preplaced_buildings:
-    grid[current_building.x][current_building.y] = current_building
+    grid[current_building.y][current_building.x] = current_building
 
 # =========================================================
 "Check state of game + Place and Update + draw ui and rest of game"
@@ -406,7 +112,7 @@ def get_alive_buildings():
     result = []
     for row in grid:
         for cell in row:
-            if isinstance(cell, building):  # is cell een instance van building
+            if isinstance(cell, Building):  # is cell een instance van building
                 result.append(cell)
     return result
 
@@ -423,9 +129,6 @@ def place_troop(row, col):
     if not (0 <= row < grid_rows and 0 <= col < grid_cols):
         return
 
-    if row != 0 and row != grid_rows - 1 and col != 0 and col != grid_cols - 1:
-        return
-
     if grid[row][col] is not None:
         return
 
@@ -434,11 +137,11 @@ def place_troop(row, col):
         return
 
     if selected_troop == "small":
-        new_troop = small_troop(15, 4, (grid_rows, grid_cols), 500, 8, (row, col), grid_tile_size)
+        new_troop = small_troop(15, 4, (grid_rows, grid_cols), 500, 8, (col, row), grid_tile_size)
     elif selected_troop == "big":
-        new_troop = big_troop(50, 1, (grid_rows, grid_cols), 2000, 12, (row, col), grid_tile_size)
+        new_troop = big_troop(50, 1, (grid_rows, grid_cols), 2000, 12, (col, row), grid_tile_size)
     else:
-        new_troop = terrorist(1, 5, (grid_rows, grid_cols), 999999, 10, (row, col), grid_tile_size)
+        new_troop = terrorist(1, 5, (grid_rows, grid_cols), 999999, 10, (col, row), grid_tile_size)
 
     troops.append(new_troop)
     grid[row][col] = new_troop
@@ -449,15 +152,14 @@ def update_buildings():
 
     for row in grid:
         for cell in row:
-            if isinstance(cell, tower):
+            if isinstance(cell, Building):
                 cell.tick(grid, alive_troops)
-            elif isinstance(cell, landmine):
-                cell.tick(grid, alive_troops)
+                alive_troops = list(filter(lambda t: t.alive, alive_troops))
 
 def update_troops():
     global cash
 
-    for current_troop in troops[:]:
+    for current_troop in troops:
         if not current_troop.alive:
             continue
 
@@ -509,7 +211,7 @@ def draw_everything():
 
     for row in grid:
         for cell in row:
-            if isinstance(cell, building):
+            if isinstance(cell, Building):
                 cell.draw(screen, grid_tile_size)
 
     for current_troop in troops:
@@ -530,6 +232,7 @@ def draw_everything():
 running = True
 move_timer = 0
 
+a = 0
 while running:
     clock.tick(fps)
 
@@ -544,6 +247,8 @@ while running:
                 selected_troop = "big"
             elif event.key == pygame.K_3:
                 selected_troop = "terrorist"
+            elif event.key == pygame.K_ESCAPE:
+                running = False
 
         elif event.type == pygame.MOUSEBUTTONDOWN:
             if event.button == 1:
@@ -551,7 +256,8 @@ while running:
                 if my < grid_rows * grid_tile_size:
                     row = my // grid_tile_size
                     col = mx // grid_tile_size
-                    place_troop(row, col)
+                    if row == 0 or row == grid_rows - 1 or col == 0 or col == grid_cols - 1:
+                        place_troop(row, col)
 
     update_buildings()
 
@@ -562,5 +268,6 @@ while running:
             update_troops()
 
     draw_everything()
+    a += 1
 
 pygame.quit()
