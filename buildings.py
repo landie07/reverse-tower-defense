@@ -2,6 +2,7 @@ from math import sin, cos, pi, sqrt
 import pygame
 
 class Building:
+    destruction_reward = 0
     def tick(self, grid, alive_troops):
         pass
 
@@ -25,6 +26,7 @@ class Building:
 class Wall(Building):
     color = 0xffffff
     hp_max = 200
+    destruction_reward = 2
 
     # let op met rotation want positieve y-as gaat naar beneden
     def __init__(self, x: int, y: int):
@@ -53,6 +55,7 @@ class Tower(Building):
     damage_hp = 5
     shot_cooldown_max = 15
     color = 0x99550C
+    destruction_reward = 5
 
     def __init__(self, x: int, y: int):
         self.x = x
@@ -105,6 +108,7 @@ class Landmine(Building):
     damage_radius = 2
     color = 0x6E7A07
     damage_hp = 20
+    destruction_reward = 0
 
     def __init__(self, x: int, y: int):
         self.x = x

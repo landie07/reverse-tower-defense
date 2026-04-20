@@ -21,7 +21,6 @@ fps = 60
 move_delay = 15
 
 starting_cash = 20
-building_reward = 4
 
 screen = pygame.display.set_mode((screen_width, screen_height))
 clock = pygame.time.Clock()
@@ -168,7 +167,7 @@ def update_troops():
         if collision:
             destroyed = current_troop.attack(current_building, grid)
             if destroyed:
-                cash += building_reward
+                cash += current_building.destruction_reward
             current_troop.instructions = []
             continue
 
