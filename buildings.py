@@ -1,4 +1,5 @@
 from math import sin, cos, pi, sqrt, ceil
+import arrow
 import troops
 import pygame
 
@@ -9,6 +10,10 @@ class Building:
 
     def draw(self, screen, tile_size):
         pass
+
+    @property
+    def alive(self) -> bool:
+        return self.hp > 0
 
     @property
     def coordinates(self) -> tuple[int]:
@@ -53,9 +58,10 @@ class Tower(Building):
     hp_max = 100
     range = 4
     damage_hp = 5
-    shot_cooldown_max = 30
+    shot_cooldown_max = 45
     color = 0x99550C
     destruction_reward = 5
+    arrow_speed = 0.5
 
     def __init__(self, x: int, y: int):
         self.x = x
@@ -69,12 +75,14 @@ class Tower(Building):
             self.shot_cooldown -= 1
             return
 
-        self.shot_cooldown = self.shot_cooldown_max
-
         self.find_target(alive_troops)
 
-        if self.target != None:
-            self.target.take_damage(self.damage_hp)
+        if self.target == None:
+            return
+
+        self.shot_cooldown = self.shot_cooldown_max
+
+        arrow.create_arrow(self.x, self.y, self.target, self.arrow_speed, self.damage_hp)
 
     def find_target(self, alive_troops: list):
         if self.target != None and self.target.alive:
@@ -107,7 +115,7 @@ class Landmine(Building):
     activation_radius = 1
     damage_radius = 2
     color = 0x6E7A07
-    damage_hp = 20
+    damage_hp = 100
     destruction_reward = 0
 
     def __init__(self, x: int, y: int):
@@ -161,7 +169,7 @@ class Landmine(Building):
         pygame.draw.circle(screen, self.color, (centre_x, centre_y), tile_size // 2)
 
 class Very_Important_Building(Building):
-    color = 0xDEDEDE
+    color = 0xD1DD13
     hp_max = 500
     destruction_reward = 100
 

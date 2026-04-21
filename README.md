@@ -8,7 +8,7 @@ WPO groep 4
  - [ ] potions
 ### idris:
  - [x] centraal doelwit (gebouw)
- - [ ] animatie toren
+ - [x] animatie toren
  - [ ] random generation
 ### sava:
  - [x] Grid groter
