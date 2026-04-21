@@ -1,4 +1,5 @@
 from math import sin, cos, pi, sqrt, ceil
+import arrow
 import troops
 import pygame
 
@@ -9,6 +10,10 @@ class Building:
 
     def draw(self, screen, tile_size):
         pass
+
+    @property
+    def alive(self) -> bool:
+        return self.hp > 0
 
     @property
     def coordinates(self) -> tuple[int]:
@@ -25,11 +30,10 @@ class Building:
         return True
 
 class Wall(Building):
-    color = 0xffffff
+    color = 0x88889A
     hp_max = 200
     destruction_reward = 2
 
-    # let op met rotation want positieve y-as gaat naar beneden
     def __init__(self, x: int, y: int):
         self.x = x
         self.y = y
@@ -54,9 +58,10 @@ class Tower(Building):
     hp_max = 100
     range = 4
     damage_hp = 5
-    shot_cooldown_max = 60
+    shot_cooldown_max = 45
     color = 0x99550C
     destruction_reward = 5
+    arrow_speed = 0.5
 
     def __init__(self, x: int, y: int):
         self.x = x
@@ -70,12 +75,14 @@ class Tower(Building):
             self.shot_cooldown -= 1
             return
 
-        self.shot_cooldown = self.shot_cooldown_max
-
         self.find_target(alive_troops)
 
-        if self.target != None:
-            self.target.take_damage(self.damage_hp)
+        if self.target == None:
+            return
+
+        self.shot_cooldown = self.shot_cooldown_max
+
+        arrow.create_arrow(self.x, self.y, self.target, self.arrow_speed, self.damage_hp)
 
     def find_target(self, alive_troops: list):
         if self.target != None and self.target.alive:
@@ -108,7 +115,7 @@ class Landmine(Building):
     activation_radius = 1
     damage_radius = 2
     color = 0x6E7A07
-    damage_hp = 20
+    damage_hp = 100
     destruction_reward = 0
 
     def __init__(self, x: int, y: int):
@@ -148,7 +155,7 @@ class Landmine(Building):
         for troop in alive_troops:
             troop_x, troop_y = troop.troop_coordinates
             dst = sqrt((self.x - troop_x) ** 2 + (self.y - troop_y) ** 2)
-            if dst < self.activation_radius:
+            if dst <= self.activation_radius:
                 explode = True
                 break
 
@@ -160,3 +167,27 @@ class Landmine(Building):
         centre_y = self.y * tile_size + tile_size // 2
         radius = tile_size - 5
         pygame.draw.circle(screen, self.color, (centre_x, centre_y), tile_size // 2)
+
+class Very_Important_Building(Building):
+    color = 0xD1DD13
+    hp_max = 500
+    destruction_reward = 100
+
+    def __init__(self, x: int, y: int):
+        self.x = x
+        self.y = y
+        self.hp = self.hp_max
+
+    def draw(self, screen, tile_size):
+        screen_x = self.x * tile_size
+        screen_y = self.y * tile_size
+        padding = 10
+
+        rect = pygame.Rect(
+                screen_x + padding,
+                screen_y + padding,
+                tile_size - 2*padding,
+                tile_size - 2*padding,
+                )
+
+        pygame.draw.rect(screen, self.color, rect)

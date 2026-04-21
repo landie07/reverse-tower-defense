@@ -125,7 +125,7 @@ class big_troop(troop):
     def __init__(self, grid_dimentions, troop_coordinates, grid_tile_size):
         health = 50
         speed = 1
-        attack_damage = 2000
+        attack_damage = 67
         troop_size = 12
 
         super().__init__(health, speed, grid_dimentions, attack_damage, troop_size, troop_coordinates, grid_tile_size)
@@ -142,7 +142,7 @@ class small_troop(troop):
     def __init__(self, grid_dimentions, troop_coordinates, grid_tile_size):
         health = 15
         speed = 4
-        attack_damage = 500
+        attack_damage = 50
         troop_size = 8
 
         super().__init__(health, speed, grid_dimentions, attack_damage, troop_size, troop_coordinates, grid_tile_size)

@@ -3,22 +3,23 @@ import queue
 import math
 from buildings import *
 from troops import *
+import arrow 
 
 pygame.init()
 
 # =========================================================
 "SETTINGS"
 # =========================================================
-grid_rows = 10
-grid_cols = 10
-grid_tile_size = 60
+grid_rows = 25
+grid_cols = 25
+grid_tile_size = 35
 ui_height = 160
 
 screen_width = grid_cols * grid_tile_size
 screen_height = grid_rows * grid_tile_size + ui_height
 
 fps = 60
-move_delay = 15
+move_delay = 20
 
 starting_cash = 20
 
@@ -63,10 +64,11 @@ troop_costs = {
 
 
 preplaced_buildings = [
-    Tower(4, 4),
-    Tower(4, 5),
-    Tower(5, 4),
-    Tower(5, 5),
+    Very_Important_Building(12, 12),
+    Tower(13, 12),
+    Tower(12, 11),
+    Tower(11, 12),
+    Tower(12, 13),
     Wall(3, 3),
     Wall(4, 3),
     Wall(5, 3),
@@ -154,6 +156,7 @@ def update_buildings():
             if isinstance(cell, Building):
                 cell.tick(grid, alive_troops)
                 alive_troops = list(filter(lambda t: t.alive, alive_troops))
+            
 
 def update_troops():
     global cash
@@ -216,11 +219,14 @@ def draw_everything():
     for current_troop in troops:
         if current_troop.alive:
             current_troop.draw_troop(screen, (255, 255, 255))
+    arrow.draw_arrows(screen, grid_tile_size)
 
     draw_ui()
+    
+    lst_allive_buildings = get_alive_buildings()
 
-    if len(get_alive_buildings()) == 0:
-        win_text = font.render("you destroyed all buildings!", True, (255, 255, 255))
+    if not any([isinstance(b, Very_Important_Building) for b in lst_allive_buildings]):
+        win_text = font.render("you destroyed the very important building!", True, (255, 255, 255))
         screen.blit(win_text, (screen_width // 2 - 140, screen_height // 2 - 20))
 
     pygame.display.flip()
@@ -259,6 +265,7 @@ while running:
                         place_troop(row, col)
 
     update_buildings()
+    arrow.tick_arrows(grid)
 
     move_timer += 1
     if move_timer >= move_delay:
