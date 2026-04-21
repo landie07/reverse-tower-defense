@@ -3,6 +3,7 @@ import queue
 import math
 from buildings import *
 from troops import *
+import arrow 
 
 pygame.init()
 
@@ -218,6 +219,7 @@ def draw_everything():
     for current_troop in troops:
         if current_troop.alive:
             current_troop.draw_troop(screen, (255, 255, 255))
+    arrow.draw_arrows(screen, grid_tile_size)
 
     draw_ui()
 
@@ -261,6 +263,7 @@ while running:
                         place_troop(row, col)
 
     update_buildings()
+    arrow.tick_arrows(grid)
 
     move_timer += 1
     if move_timer >= move_delay:
