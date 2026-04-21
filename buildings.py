@@ -1,4 +1,5 @@
 from math import sin, cos, pi, sqrt, ceil
+import arrow
 import troops
 import pygame
 
@@ -9,6 +10,10 @@ class Building:
 
     def draw(self, screen, tile_size):
         pass
+
+    @property
+    def alive(self) -> bool:
+        return self.hp > 0
 
     @property
     def coordinates(self) -> tuple[int]:
@@ -53,28 +58,38 @@ class Tower(Building):
     hp_max = 100
     range = 4
     damage_hp = 5
-    shot_cooldown_max = 30
+    shot_cooldown_max = 45
     color = 0x99550C
     destruction_reward = 5
+    arrow_speed = 0.5
 
     def __init__(self, x: int, y: int):
         self.x = x
         self.y = y
         self.hp = self.hp_max
         self.target = None
+        self.arrow = None
         self.shot_cooldown = self.shot_cooldown_max
 
     def tick(self, grid, alive_troops):
+        if not self.arrow == None:
+            self.arrow.tick(grid)
+            if self.arrow.target_reached:
+                self.arrow = None
+
         if self.shot_cooldown > 0:
             self.shot_cooldown -= 1
             return
 
-        self.shot_cooldown = self.shot_cooldown_max
-
         self.find_target(alive_troops)
 
-        if self.target != None:
-            self.target.take_damage(self.damage_hp)
+        if self.target == None:
+            return
+
+        self.shot_cooldown = self.shot_cooldown_max
+
+
+        self.arrow = arrow.Arrow(self.x, self.y, self.target, self.arrow_speed, self.damage_hp)
 
     def find_target(self, alive_troops: list):
         if self.target != None and self.target.alive:
@@ -102,12 +117,15 @@ class Tower(Building):
         radius = tile_size - 5
         pygame.draw.circle(screen, self.color, (centre_x, centre_y), tile_size // 2)
 
+        if not self.arrow == None:
+            self.arrow.draw(screen, tile_size)
+
 class Landmine(Building):
     hp_max = 1
     activation_radius = 1
     damage_radius = 2
     color = 0x6E7A07
-    damage_hp = 20
+    damage_hp = 100
     destruction_reward = 0
 
     def __init__(self, x: int, y: int):
@@ -161,7 +179,7 @@ class Landmine(Building):
         pygame.draw.circle(screen, self.color, (centre_x, centre_y), tile_size // 2)
 
 class Very_Important_Building(Building):
-    color = 0xDEDEDE
+    color = 0xD1DD13
     hp_max = 500
     destruction_reward = 100
 
