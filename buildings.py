@@ -1,4 +1,5 @@
-from math import sin, cos, pi, sqrt
+from math import sin, cos, pi, sqrt, ceil
+import troops
 import pygame
 
 class Building:
@@ -104,7 +105,7 @@ class Tower(Building):
 
 class Landmine(Building):
     hp_max = 1
-    activation_radius = 2
+    activation_radius = 1
     damage_radius = 2
     color = 0x6E7A07
     damage_hp = 20
@@ -114,6 +115,32 @@ class Landmine(Building):
         self.x = x
         self.y = y
         self.hp = self.hp_max
+
+    def damage(self, hp, grid) -> bool:
+        dead = super().damage(hp, grid)
+        if not dead:
+            return dead
+
+        damage_radius_i = int(ceil(self.damage_radius))
+        for dy in range(-damage_radius_i, damage_radius_i + 1):
+            y = self.y + dy
+            if y < 0 or y >= len(grid):
+                continue
+
+            for dx in range(-damage_radius_i, damage_radius_i + 1):
+                if sqrt(dx**2 + dy**2) > self.damage_radius:
+                    continue
+
+                x = self.x + dx
+
+                if x < 0 or x >= len(grid[y]):
+                    continue
+
+                if isinstance(grid[y][x], troops.troop):
+                    grid[y][x].take_damage(self.damage_hp)
+
+
+        return dead
 
     def tick(self, grid, alive_troops):
         explode = False
@@ -125,16 +152,8 @@ class Landmine(Building):
                 explode = True
                 break
 
-        if not explode:
-            return
-
-        for troop in alive_troops:
-            troop_x, troop_y = troop.troop_coordinates
-            dst = sqrt((self.x - troop_x) ** 2 + (self.y - troop_y) ** 2)
-            if dst < self.damage_radius:
-                troop.take_damage(self.damage_hp)
-
-        self.damage(self.hp, grid)
+        if explode:
+            self.damage(self.hp, grid)
 
     def draw(self, screen, tile_size):
         centre_x = self.x * tile_size + tile_size // 2
