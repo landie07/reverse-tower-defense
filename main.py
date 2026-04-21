@@ -2,7 +2,7 @@ import pygame
 import queue
 import math
 from buildings import *
-from prototype_troops import *
+from troops import *
 
 pygame.init()
 
