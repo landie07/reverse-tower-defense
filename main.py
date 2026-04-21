@@ -63,10 +63,11 @@ troop_costs = {
 
 
 preplaced_buildings = [
-    Tower(4, 4),
-    Tower(4, 5),
-    Tower(5, 4),
-    Tower(5, 5),
+    Very_Important_Building(12, 12),
+    Tower(13, 12),
+    Tower(12, 11),
+    Tower(11, 12),
+    Tower(12, 13),
     Wall(3, 3),
     Wall(4, 3),
     Wall(5, 3),
@@ -154,6 +155,7 @@ def update_buildings():
             if isinstance(cell, Building):
                 cell.tick(grid, alive_troops)
                 alive_troops = list(filter(lambda t: t.alive, alive_troops))
+            
 
 def update_troops():
     global cash
