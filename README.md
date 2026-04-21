@@ -3,10 +3,14 @@
 WPO groep 4
 
 ## mogelijks implementern:
- - [ ] grid groter + trager ticken
- - [ ] random generation
+### lander:
+ - [ ] archer
  - [ ] potions
- - [ ] troepen upgraden
- - [ ] levels
- - [ ] meer soorten troepen of gebouwen
- - [ ] centraal doelwit ipv alles kapot
+### idris:
+ - [ ] centraal doelwit (gebouw)
+ - [ ] animatie toren
+ - [ ] random generation
+### sava:
+ - [ ] Grid groter
+ - [ ] tickrate laag
+ - [ ] centraal doelwit (winnen)
