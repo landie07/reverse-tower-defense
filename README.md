@@ -13,4 +13,4 @@ WPO groep 4
 ### sava:
  - [x] Grid groter
  - [x] tickrate laag
- - [ ] centraal doelwit (winnen)
+ - [x] centraal doelwit (winnen)
