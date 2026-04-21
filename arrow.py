@@ -3,7 +3,27 @@ import buildings
 import troops
 from math import sqrt
 
-class Arrow:
+arrows = []
+
+def create_arrow(x, y, target, speed, damage):
+    arrow = _Arrow(x, y, target, speed, damage)
+    arrows.append(arrow)
+
+def tick_arrows(grid):
+    to_remove = []
+    for i, arrow in enumerate(arrows):
+        arrow.tick(grid)
+        if arrow.target_reached:
+            to_remove.append(i)
+
+    for i in to_remove[::-1]:
+        del arrows[i]
+
+def draw_arrows(screen, tile_size):
+    for arrow in arrows:
+        arrow.draw(screen, tile_size)
+
+class _Arrow:
     color = 0xD81111
 
     # snelheid in tiles/tick

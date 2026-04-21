@@ -68,15 +68,9 @@ class Tower(Building):
         self.y = y
         self.hp = self.hp_max
         self.target = None
-        self.arrow = None
         self.shot_cooldown = self.shot_cooldown_max
 
     def tick(self, grid, alive_troops):
-        if not self.arrow == None:
-            self.arrow.tick(grid)
-            if self.arrow.target_reached:
-                self.arrow = None
-
         if self.shot_cooldown > 0:
             self.shot_cooldown -= 1
             return
@@ -88,8 +82,7 @@ class Tower(Building):
 
         self.shot_cooldown = self.shot_cooldown_max
 
-
-        self.arrow = arrow.Arrow(self.x, self.y, self.target, self.arrow_speed, self.damage_hp)
+        arrow.create_arrow(self.x, self.y, self.target, self.arrow_speed, self.damage_hp)
 
     def find_target(self, alive_troops: list):
         if self.target != None and self.target.alive:
@@ -116,9 +109,6 @@ class Tower(Building):
         centre_y = self.y * tile_size + tile_size // 2
         radius = tile_size - 5
         pygame.draw.circle(screen, self.color, (centre_x, centre_y), tile_size // 2)
-
-        if not self.arrow == None:
-            self.arrow.draw(screen, tile_size)
 
 class Landmine(Building):
     hp_max = 1
