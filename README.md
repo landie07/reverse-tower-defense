@@ -11,6 +11,6 @@ WPO groep 4
  - [ ] animatie toren
  - [ ] random generation
 ### sava:
- - [ ] Grid groter
- - [ ] tickrate laag
+ - [x] Grid groter
+ - [x] tickrate laag
  - [ ] centraal doelwit (winnen)

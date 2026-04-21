@@ -9,16 +9,16 @@ pygame.init()
 # =========================================================
 "SETTINGS"
 # =========================================================
-grid_rows = 10
-grid_cols = 10
-grid_tile_size = 60
+grid_rows = 25
+grid_cols = 25
+grid_tile_size = 35
 ui_height = 160
 
 screen_width = grid_cols * grid_tile_size
 screen_height = grid_rows * grid_tile_size + ui_height
 
 fps = 60
-move_delay = 15
+move_delay = 20
 
 starting_cash = 20
 
