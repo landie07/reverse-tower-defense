@@ -54,7 +54,7 @@ class Tower(Building):
     hp_max = 100
     range = 4
     damage_hp = 5
-    shot_cooldown_max = 60
+    shot_cooldown_max = 30
     color = 0x99550C
     destruction_reward = 5
 
@@ -148,7 +148,7 @@ class Landmine(Building):
         for troop in alive_troops:
             troop_x, troop_y = troop.troop_coordinates
             dst = sqrt((self.x - troop_x) ** 2 + (self.y - troop_y) ** 2)
-            if dst < self.activation_radius:
+            if dst <= self.activation_radius:
                 explode = True
                 break
 
