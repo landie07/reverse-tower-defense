@@ -186,6 +186,8 @@ class archer(troop):
         super().__init__(health, speed, grid_dimentions, attack_damage, troop_size, troop_coordinates, grid_tile_size)
         self.rgb_color = (0, 0, 0)
         self.shooting = False
+        self.shooting_speed = 5
+        self.shooting_damage = 5
 
     def draw_troop(self, screen, rgb_color):
         if self.alive:
@@ -194,7 +196,7 @@ class archer(troop):
             pygame.draw.circle(screen, self.rgb_color, (x, y), self.troop_size)
 
     def attack(self, target_building, grid):
-        arrow.create_arrow(start x, start y, doelwit, pijl snelheid, damage) #nog aanpassen!
+        arrow.create_arrow(self.troop_coordinates[0], self.troop_coordinates[1], target_building, self.shooting_speed, self.damage) #nog aanpassen!
         destroyed = target_building.damage(self.attack_damage, grid)
         return destroyed
 
