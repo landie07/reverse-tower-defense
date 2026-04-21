@@ -25,11 +25,10 @@ class Building:
         return True
 
 class Wall(Building):
-    color = 0xffffff
+    color = 0x88889A
     hp_max = 200
     destruction_reward = 2
 
-    # let op met rotation want positieve y-as gaat naar beneden
     def __init__(self, x: int, y: int):
         self.x = x
         self.y = y
@@ -160,3 +159,27 @@ class Landmine(Building):
         centre_y = self.y * tile_size + tile_size // 2
         radius = tile_size - 5
         pygame.draw.circle(screen, self.color, (centre_x, centre_y), tile_size // 2)
+
+class Very_Important_Building(Building):
+    color = 0xDEDEDE
+    hp_max = 500
+    destruction_reward = 100
+
+    def __init__(self, x: int, y: int):
+        self.x = x
+        self.y = y
+        self.hp = self.hp_max
+
+    def draw(self, screen, tile_size):
+        screen_x = self.x * tile_size
+        screen_y = self.y * tile_size
+        padding = 10
+
+        rect = pygame.Rect(
+                screen_x + padding,
+                screen_y + padding,
+                tile_size - 2*padding,
+                tile_size - 2*padding,
+                )
+
+        pygame.draw.rect(screen, self.color, rect)

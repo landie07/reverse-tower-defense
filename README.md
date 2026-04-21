@@ -7,7 +7,7 @@ WPO groep 4
  - [ ] archer
  - [ ] potions
 ### idris:
- - [ ] centraal doelwit (gebouw)
+ - [x] centraal doelwit (gebouw)
  - [ ] animatie toren
  - [ ] random generation
 ### sava:
