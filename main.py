@@ -226,7 +226,7 @@ def draw_everything():
     lst_allive_buildings = get_alive_buildings()
 
     if not any([isinstance(b, Very_Important_Building) for b in lst_allive_buildings]):
-        win_text = font.render("you destroyed all buildings!", True, (255, 255, 255))
+        win_text = font.render("you destroyed the very important building!", True, (255, 255, 255))
         screen.blit(win_text, (screen_width // 2 - 140, screen_height // 2 - 20))
 
     pygame.display.flip()
