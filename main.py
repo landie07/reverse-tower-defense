@@ -80,25 +80,25 @@ preplaced_buildings = [
     Wall(3, 5),
     Wall(3, 4),
     Landmine(2, 2),
-    Landmine(3, 2),
-    Landmine(4, 2),
-    Landmine(5, 2),
-    Landmine(6, 2),
+    # Landmine(3, 2),
+    # Landmine(4, 2),
+    # Landmine(5, 2),
+    # Landmine(6, 2),
     Landmine(7, 2),
-    Landmine(7, 3),
-    Landmine(7, 4),
-    Landmine(7, 5),
-    Landmine(7, 6),
+    # Landmine(7, 3),
+    # Landmine(7, 4),
+    # Landmine(7, 5),
+    # Landmine(7, 6),
     Landmine(7, 7),
-    Landmine(6, 7),
-    Landmine(5, 7),
-    Landmine(4, 7),
-    Landmine(3, 7),
+    # Landmine(6, 7),
+    # Landmine(5, 7),
+    # Landmine(4, 7),
+    # Landmine(3, 7),
     Landmine(2, 7),
-    Landmine(2, 6),
-    Landmine(2, 5),
-    Landmine(2, 4),
-    Landmine(2, 3),
+    # Landmine(2, 6),
+    # Landmine(2, 5),
+    # Landmine(2, 4),
+    # Landmine(2, 3),
 ]
 
 for current_building in preplaced_buildings:
@@ -136,11 +136,11 @@ def place_troop(row, col):
         return
 
     if selected_troop == "small":
-        new_troop = small_troop(15, 4, (grid_rows, grid_cols), 500, 8, (col, row), grid_tile_size)
+        new_troop = small_troop((grid_rows, grid_cols), (col, row), grid_tile_size)
     elif selected_troop == "big":
-        new_troop = big_troop(50, 1, (grid_rows, grid_cols), 2000, 12, (col, row), grid_tile_size)
+        new_troop = big_troop((grid_rows, grid_cols), (col, row), grid_tile_size)
     else:
-        new_troop = terrorist(1, 5, (grid_rows, grid_cols), 999999, 10, (col, row), grid_tile_size)
+        new_troop = terrorist((grid_rows, grid_cols), (col, row), grid_tile_size)
 
     troops.append(new_troop)
     grid[row][col] = new_troop

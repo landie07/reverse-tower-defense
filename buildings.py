@@ -19,7 +19,7 @@ class Building:
             return False
 
         if not (self is grid[self.y][self.x]):
-            print("he")
+            print("probleem")
         grid[self.y][self.x] = None
         return True
 
@@ -53,7 +53,7 @@ class Tower(Building):
     hp_max = 100
     range = 4
     damage_hp = 5
-    shot_cooldown_max = 15
+    shot_cooldown_max = 60
     color = 0x99550C
     destruction_reward = 5
 

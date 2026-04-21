@@ -121,12 +121,13 @@ class troop:
 
 
 class terrorist(troop):
-    def __init__(self, health, speed, grid_dimentions, attack_damage, troop_size, troop_coordinates, grid_tile_size):
+    def __init__(self, grid_dimentions, troop_coordinates, grid_tile_size):
+        health = 1
+        speed = 5
+        attack_damage = 999999
+        troop_size = 10
+
         super().__init__(health, speed, grid_dimentions, attack_damage, troop_size, troop_coordinates, grid_tile_size)
-        self.health = 1
-        self.speed = 5
-        self.attack_damage = 999999
-        self.troop_size = 10
         self.rgb_color = (255, 0, 0)
 
     def draw_troop(self, screen, rgb_color):
@@ -142,12 +143,13 @@ class terrorist(troop):
 
 
 class big_troop(troop):
-    def __init__(self, health, speed, grid_dimentions, attack_damage, troop_size, troop_coordinates, grid_tile_size):
+    def __init__(self, grid_dimentions, troop_coordinates, grid_tile_size):
+        health = 50
+        speed = 1
+        attack_damage = 2000
+        troop_size = 12
+
         super().__init__(health, speed, grid_dimentions, attack_damage, troop_size, troop_coordinates, grid_tile_size)
-        self.health = 50
-        self.speed = 1
-        self.attack_damage = 2000
-        self.troop_size = 12
         self.rgb_color = (0, 255, 0)
 
     def draw_troop(self, screen, rgb_color):
@@ -158,12 +160,13 @@ class big_troop(troop):
 
 
 class small_troop(troop):
-    def __init__(self, health, speed, grid_dimentions, attack_damage, troop_size, troop_coordinates, grid_tile_size):
+    def __init__(self, grid_dimentions, troop_coordinates, grid_tile_size):
+        health = 15
+        speed = 4
+        attack_damage = 500
+        troop_size = 8
+
         super().__init__(health, speed, grid_dimentions, attack_damage, troop_size, troop_coordinates, grid_tile_size)
-        self.health = 15
-        self.speed = 4
-        self.attack_damage = 500
-        self.troop_size = 8
         self.rgb_color = (0, 0, 255)
 
     def draw_troop(self, screen, rgb_color):
