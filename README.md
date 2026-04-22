@@ -4,8 +4,8 @@ WPO groep 4
 
 ## mogelijks implementern:
 ### lander:
- - [ ] archer
- - [ ] potions
+ - [x] archer
+ - [x] potions
 ### idris:
  - [x] centraal doelwit (gebouw)
  - [x] animatie toren
