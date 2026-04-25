@@ -12,11 +12,11 @@ pygame.init()
 # =========================================================
 grid_rows = 25
 grid_cols = 25
-grid_tile_size = 35
-ui_height = 160
+grid_tile_size = 30
+ui_width = 350
 
-screen_width = grid_cols * grid_tile_size
-screen_height = grid_rows * grid_tile_size + ui_height
+screen_width = grid_cols * grid_tile_size + ui_width
+screen_height = grid_rows * grid_tile_size
 
 fps = 60
 move_delay = 20
@@ -59,7 +59,8 @@ selected_troop = "small"
 troop_costs = {
     "small": 2,
     "big": 5,
-    "terrorist": 4
+    "terrorist": 4,
+    "archer": 3,
 }
 
 
@@ -141,8 +142,10 @@ def place_troop(row, col):
         new_troop = small_troop((grid_rows, grid_cols), (col, row), grid_tile_size)
     elif selected_troop == "big":
         new_troop = big_troop((grid_rows, grid_cols), (col, row), grid_tile_size)
-    else:
+    elif selected_troop == "terrorist":
         new_troop = terrorist((grid_rows, grid_cols), (col, row), grid_tile_size)
+    elif selected_troop == "archer":
+        new_troop = archer((grid_rows, grid_cols), (col, row), grid_tile_size)
 
     troops.append(new_troop)
     grid[row][col] = new_troop
@@ -183,20 +186,36 @@ def update_troops():
             current_troop.move(current_troop.instructions, grid)
 
 def draw_ui():
-    ui_rect = pygame.Rect(0, grid_rows * grid_tile_size, screen_width, ui_height)
+    ui_rect = pygame.Rect(grid_rows * grid_tile_size, 0, ui_width, screen_height)
     pygame.draw.rect(screen, (25, 25, 25), ui_rect)
 
-    text1 = font.render("1 = small   2 = big   3 = terrorist", True, (255, 255, 255))  # text --> iets om te tekenen
-    text2 = font.render(f"selected: {selected_troop}", True, (255, 255, 0))
-    text3 = font.render(f"cash: {cash}", True, (0, 255, 0))
-    text4 = small_font.render("green edge tiles = where you can place troops", True, (200, 200, 200))
-    text5 = small_font.render("towers shoot, landmines explode", True, (200, 200, 200))
+    text1 = font.render("1 = small", True, (255, 255, 255))
+    text2 = font.render("2 = big", True, (255, 255, 255))
+    text3 = font.render("3 = terrorist", True, (255, 255, 255))
+    text4 = font.render("4 = archer", True, (255, 255, 255))
+    text5 = font.render(f"selected: {selected_troop}", True, (255, 255, 0))
+    text6 = font.render(f"cash: {cash}", True, (0, 255, 0))
+    text7 = small_font.render("green edge tiles = where you can place troops", True, (200, 200, 200))
+    text8 = small_font.render("towers shoot, landmines explode", True, (200, 200, 200))
 
-    screen.blit(text1, (10, grid_rows * grid_tile_size + 10))  # een surface tekenen op een andere
-    screen.blit(text2, (10, grid_rows * grid_tile_size + 40))
-    screen.blit(text3, (220, grid_rows * grid_tile_size + 40))
-    screen.blit(text4, (350, grid_rows * grid_tile_size + 20))
-    screen.blit(text5, (350, grid_rows * grid_tile_size + 45))
+    padding = 5
+    height = 10
+    screen.blit(text1, (grid_cols * grid_tile_size + 10, height))  # een surface tekenen op een andere
+    height += text1.get_height() + padding
+    screen.blit(text2, (grid_cols * grid_tile_size + 10, height))
+    height += text2.get_height() + padding
+    screen.blit(text3, (grid_cols * grid_tile_size + 10, height))
+    height += text3.get_height() + padding
+    screen.blit(text4, (grid_cols * grid_tile_size + 10, height))
+    height += text4.get_height() + padding
+    screen.blit(text5, (grid_cols * grid_tile_size + 10, height))
+    height += text5.get_height() + padding
+    screen.blit(text6, (grid_cols * grid_tile_size + 10, height))
+    height += text6.get_height() + padding
+    screen.blit(text7, (grid_cols * grid_tile_size + 10, height))
+    height += text7.get_height() + padding
+    screen.blit(text8, (grid_cols * grid_tile_size + 10, height))
+    height += text8.get_height() + padding
 
 def draw_everything():
     screen.fill((30, 30, 30))
@@ -219,6 +238,7 @@ def draw_everything():
     for current_troop in troops:
         if current_troop.alive:
             current_troop.draw_troop(screen, (255, 255, 255))
+
     arrow.draw_arrows(screen, grid_tile_size)
 
     draw_ui()
@@ -252,6 +272,8 @@ while running:
                 selected_troop = "big"
             elif event.key == pygame.K_3:
                 selected_troop = "terrorist"
+            elif event.key == pygame.K_4:
+                selected_troop = "archer"
             elif event.key == pygame.K_ESCAPE:
                 running = False
 

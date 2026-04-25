@@ -107,8 +107,8 @@ class Tower(Building):
     def draw(self, screen, tile_size):
         centre_x = self.x * tile_size + tile_size // 2
         centre_y = self.y * tile_size + tile_size // 2
-        radius = tile_size - 5
-        pygame.draw.circle(screen, self.color, (centre_x, centre_y), tile_size // 2)
+        radius = tile_size // 2 - 2
+        pygame.draw.circle(screen, self.color, (centre_x, centre_y), radius)
 
 class Landmine(Building):
     hp_max = 1
@@ -165,8 +165,9 @@ class Landmine(Building):
     def draw(self, screen, tile_size):
         centre_x = self.x * tile_size + tile_size // 2
         centre_y = self.y * tile_size + tile_size // 2
-        radius = tile_size - 5
-        pygame.draw.circle(screen, self.color, (centre_x, centre_y), tile_size // 2)
+        padding = 5
+        radius = tile_size // 2 - padding
+        pygame.draw.circle(screen, self.color, (centre_x, centre_y), radius)
 
 class Very_Important_Building(Building):
     color = 0xD1DD13
@@ -181,7 +182,7 @@ class Very_Important_Building(Building):
     def draw(self, screen, tile_size):
         screen_x = self.x * tile_size
         screen_y = self.y * tile_size
-        padding = 10
+        padding = 5
 
         rect = pygame.Rect(
                 screen_x + padding,
