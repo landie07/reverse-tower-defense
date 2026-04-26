@@ -1,6 +1,7 @@
 from math import sin, cos, pi, sqrt, ceil
 import arrow
 import troops
+import particle_effect
 import pygame
 
 class Building:
@@ -10,6 +11,26 @@ class Building:
 
     def draw(self, screen, tile_size):
         pass
+
+    # tekent bar met levenspunten
+    def _draw_hp(self, screen, tile_size):
+        if not self.alive or self.hp >= self.hp_max:
+            return
+
+        green = 0x00FF00
+        red = 0xFF0000
+        padding = 4
+        height = padding
+        width = tile_size - 2*padding
+        s = pygame.Surface((width, height))
+        s.set_alpha(0x40)
+        s.fill(red)
+        rect = pygame.Rect(0, 0, int(self.hp / self.hp_max * width), height)
+        pygame.draw.rect(s, green, rect)
+
+        x = self.x * tile_size + padding
+        y = self.y * tile_size + padding
+        screen.blit(s, (x, y))
 
     @property
     def alive(self) -> bool:
@@ -26,6 +47,7 @@ class Building:
 
         if not (self is grid[self.y][self.x]):
             print("probleem")
+
         grid[self.y][self.x] = None
         return True
 
@@ -36,26 +58,74 @@ class Wall(Visible_Building):
     color = 0x88889A
     hp_max = 200
     destruction_reward = 2
+    directions = [(1, 0), (-1, 0), (0, 1), (0, -1)]
 
     def __init__(self, x: int, y: int):
         self.x = x
         self.y = y
         self.hp = self.hp_max
+        self.surrounding = [False, False, False, False] # right, left, top, bottom
+
+    def tick(self, grid, alive_troops):
+        for i, (dx, dy) in enumerate(self.directions):
+            x = self.x + dx
+            y = self.y + dy
+            if 0 <= y < len(grid) and 0 <= x < len(grid[y]):
+                self.surrounding[i] = isinstance(grid[y][x], Wall)
 
     def draw(self, screen, tile_size):
         screen_x = self.x * tile_size
         screen_y = self.y * tile_size
-        # misschien in de toekomst kijken naar naburige gebouwen zodat muren kunnen verbinden
-        padding = 10
+        padding = 8
 
+        size = tile_size - 2*padding
         rect = pygame.Rect(
                 screen_x + padding,
                 screen_y + padding,
-                tile_size - 2*padding,
-                tile_size - 2*padding,
-                )
+                size, size)
 
         pygame.draw.rect(screen, self.color, rect)
+
+        # offsets (p = padding, s = size) getoond voor x, y equivalent
+        # niet op schaal getekend
+        #
+        #   left
+        #   |
+        #   +----s----+
+        #   +p/2+     |
+        # +p+   |     |
+        # | |   ##    |
+        # | ##########
+        # | ##########
+        # #####WALL#####
+        #   ##########
+        #   ##########
+        #       ##
+
+        pixel_offset = (-padding, padding//2, size)
+        for i, (dx, dy) in enumerate(self.directions):
+            if not self.surrounding[i]:
+                continue
+
+            if dx == 0:
+                width = size - padding
+            else:
+                width = padding
+
+            if dy == 0:
+                height = size - padding
+            else:
+                height = padding
+
+            side_rect = pygame.Rect(
+                    rect.left + pixel_offset[dx + 1],
+                    rect.top + pixel_offset[dy + 1],
+                    width, height)
+
+            pygame.draw.rect(screen, self.color, side_rect)
+
+        self._draw_hp(screen, tile_size)
+
 
 class Tower(Visible_Building):
     hp_max = 100
@@ -113,11 +183,14 @@ class Tower(Visible_Building):
         radius = tile_size // 2 - 2
         pygame.draw.circle(screen, self.color, (centre_x, centre_y), radius)
 
+        self._draw_hp(screen, tile_size)
+
 class Landmine(Building):
     hp_max = 1
     activation_radius = 1
     damage_radius = 2
     color = 0x6E7A07
+    explode_color = pygame.Color(0xDD4511C8)
     damage_hp = 100
     destruction_reward = 0
 
@@ -125,52 +198,45 @@ class Landmine(Building):
         self.x = x
         self.y = y
         self.hp = self.hp_max
+        self.explode = False
 
     def damage(self, hp, grid) -> bool:
-        dead = super().damage(hp, grid)
-        if not dead:
-            return dead
+        if self.explode:
+            dead = super().damage(hp, grid)
 
-        damage_radius_i = int(ceil(self.damage_radius))
-        for dy in range(-damage_radius_i, damage_radius_i + 1):
-            y = self.y + dy
-            if y < 0 or y >= len(grid):
-                continue
+        self.explode = True
+        return not self.alive
 
-            for dx in range(-damage_radius_i, damage_radius_i + 1):
-                if sqrt(dx**2 + dy**2) > self.damage_radius:
-                    continue
-
-                x = self.x + dx
-
-                if x < 0 or x >= len(grid[y]):
-                    continue
-
-                if isinstance(grid[y][x], troops.troop):
-                    grid[y][x].take_damage(self.damage_hp)
-
-
-        return dead
 
     def tick(self, grid, alive_troops):
-        explode = False
+        if self.explode:
+            self.damage(self.hp, grid)
+
+            for troop in alive_troops:
+                troop_x, troop_y = troop.troop_coordinates
+                dst = sqrt((self.x - troop_x) ** 2 + (self.y - troop_y) ** 2)
+                if dst <= self.damage_radius:
+                    troop.take_damage(self.damage_hp)
+
+            return
 
         for troop in alive_troops:
             troop_x, troop_y = troop.troop_coordinates
             dst = sqrt((self.x - troop_x) ** 2 + (self.y - troop_y) ** 2)
             if dst <= self.activation_radius:
-                explode = True
+                self.explode = True
                 break
-
-        if explode:
-            self.damage(self.hp, grid)
 
     def draw(self, screen, tile_size):
         centre_x = self.x * tile_size + tile_size // 2
         centre_y = self.y * tile_size + tile_size // 2
         padding = 5
         radius = tile_size // 2 - padding
+        if self.explode:
+            particle_effect.create(self.x, self.y, 30, self.damage_radius * tile_size - 5, self.explode_color)
         pygame.draw.circle(screen, self.color, (centre_x, centre_y), radius)
+
+        self._draw_hp(screen, tile_size)
 
 class Very_Important_Building(Visible_Building):
     color = 0xD1DD13
@@ -185,7 +251,7 @@ class Very_Important_Building(Visible_Building):
     def draw(self, screen, tile_size):
         screen_x = self.x * tile_size
         screen_y = self.y * tile_size
-        padding = 5
+        padding = 4
 
         rect = pygame.Rect(
                 screen_x + padding,
@@ -195,3 +261,5 @@ class Very_Important_Building(Visible_Building):
                 )
 
         pygame.draw.rect(screen, self.color, rect)
+
+        self._draw_hp(screen, tile_size)

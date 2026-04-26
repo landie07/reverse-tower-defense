@@ -1,12 +1,14 @@
 import queue
 import buildings
 import pygame
+import particle_effect
 import arrow
 
 class troop:
     def __init__(self, health, speed, grid_dimentions, attack_damage, troop_size, troop_coordinates, grid_tile_size, attack_radius):
         self.alive = True
         self.health = health
+        self.max_health = health
         self.speed = speed
         self.attack_damage = attack_damage
         self.grid_dimentions = grid_dimentions
@@ -127,6 +129,26 @@ class troop:
         if grid[y][x] is self:
             grid[y][x] = None
 
+    def _draw_health_bar(self, screen):
+        if self.health >= self.max_health:
+            return
+
+        green = (0, 255, 0)
+        red = (255, 0, 0)
+        padding = 4
+        height = padding
+        width = self.grid_tile_size - 2*padding
+        s = pygame.Surface((width, height))
+        s.set_alpha(96)
+        s.fill(red)
+        rect = pygame.Rect(0, 0, int(self.health / self.max_health * width), height)
+        pygame.draw.rect(s, green, rect)
+
+        x, y = self.troop_coordinates
+        x = x * self.grid_tile_size + padding
+        y = y * self.grid_tile_size + padding
+        screen.blit(s, (x, y))
+
 
 class big_troop(troop):
     def __init__(self, grid_dimentions, troop_coordinates, grid_tile_size):
@@ -144,6 +166,7 @@ class big_troop(troop):
             x = self.troop_coordinates[0] * self.grid_tile_size + self.grid_tile_size // 2
             y = self.troop_coordinates[1] * self.grid_tile_size + self.grid_tile_size // 2
             pygame.draw.circle(screen, self.rgb_color, (x, y), self.troop_size)
+            self._draw_health_bar(screen)
 
 
 class small_troop(troop):
@@ -162,6 +185,7 @@ class small_troop(troop):
             x = self.troop_coordinates[0] * self.grid_tile_size + self.grid_tile_size // 2
             y = self.troop_coordinates[1] * self.grid_tile_size + self.grid_tile_size // 2
             pygame.draw.circle(screen, self.rgb_color, (x, y), self.troop_size)
+            self._draw_health_bar(screen)
 
 
 class terrorist(troop):
@@ -174,16 +198,20 @@ class terrorist(troop):
 
         super().__init__(health, speed, grid_dimentions, attack_damage, troop_size, troop_coordinates, grid_tile_size, attack_radius)
         self.rgb_color = (255, 0, 0)
+        self.explode_color = (221, 69, 17, 200)
 
     def draw_troop(self, screen, rgb_color):
         if self.alive:
             x = self.troop_coordinates[0] * self.grid_tile_size + self.grid_tile_size // 2
             y = self.troop_coordinates[1] * self.grid_tile_size + self.grid_tile_size // 2
             pygame.draw.circle(screen, self.rgb_color, (x, y), self.troop_size)
+            self._draw_health_bar(screen)
 
     def attack(self, target_building, grid):
         destroyed = target_building.damage(self.attack_damage, grid)
         self.die(grid)
+        x, y = self.troop_coordinates
+        particle_effect.create(x, y, 30, self.attack_radius*self.grid_tile_size, self.explode_color)
         return destroyed
 
 class archer(troop):
@@ -204,6 +232,7 @@ class archer(troop):
             x = self.troop_coordinates[0] * self.grid_tile_size + self.grid_tile_size // 2
             y = self.troop_coordinates[1] * self.grid_tile_size + self.grid_tile_size // 2
             pygame.draw.circle(screen, self.rgb_color, (x, y), self.troop_size)
+            self._draw_health_bar(screen)
 
     def attack(self, target_building, grid):
         arrow.create_arrow(

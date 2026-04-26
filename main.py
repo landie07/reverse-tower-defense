@@ -4,6 +4,7 @@ import math
 from buildings import *
 from troops import *
 import arrow 
+import particle_effect 
 
 pygame.init()
 
@@ -189,12 +190,12 @@ def draw_ui():
     ui_rect = pygame.Rect(grid_rows * grid_tile_size, 0, ui_width, screen_height)
     pygame.draw.rect(screen, (25, 25, 25), ui_rect)
 
-    text1 = font.render("1 = small", True, (255, 255, 255))
-    text2 = font.render("2 = big", True, (255, 255, 255))
-    text3 = font.render("3 = terrorist", True, (255, 255, 255))
-    text4 = font.render("4 = archer", True, (255, 255, 255))
+    text1 = font.render(f"1 = small {troop_costs["small"]}¢", True, (255, 255, 255))
+    text2 = font.render(f"2 = big {troop_costs["big"]}¢", True, (255, 255, 255))
+    text3 = font.render(f"3 = terrorist {troop_costs["terrorist"]}¢", True, (255, 255, 255))
+    text4 = font.render(f"4 = archer {troop_costs["archer"]}¢", True, (255, 255, 255))
     text5 = font.render(f"selected: {selected_troop}", True, (255, 255, 0))
-    text6 = font.render(f"cash: {cash}", True, (0, 255, 0))
+    text6 = font.render(f"cash: {cash}¢", True, (0, 255, 0))
     text7 = small_font.render("green edge tiles = where you can place troops", True, (200, 200, 200))
     text8 = small_font.render("towers shoot, landmines explode", True, (200, 200, 200))
 
@@ -240,6 +241,7 @@ def draw_everything():
             current_troop.draw_troop(screen, (255, 255, 255))
 
     arrow.draw_arrows(screen, grid_tile_size)
+    particle_effect.draw(screen, grid_tile_size)
 
     draw_ui()
     
@@ -247,7 +249,7 @@ def draw_everything():
 
     if not any([isinstance(b, Very_Important_Building) for b in lst_allive_buildings]):
         win_text = font.render("you destroyed the very important building!", True, (255, 255, 255))
-        screen.blit(win_text, (screen_width // 2 - 200, screen_height // 2 - 70))
+        screen.blit(win_text, ((screen_width - win_text.get_width()) // 2, (screen_height - win_text.get_height()) // 2))
 
     pygame.display.flip()
 
