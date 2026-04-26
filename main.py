@@ -174,16 +174,16 @@ def update_troops():
             destroyed = current_troop.attack(current_building, grid)
             if destroyed:
                 cash += current_building.destruction_reward
-            current_troop.instructions = []
+                current_troop.instructions = []
             continue
 
-        if not current_troop.instructions:
+        if current_troop.instructions:
+            current_troop.move(current_troop.instructions, grid)
+        else:
             visited_locations = []
             _, path = current_troop.find_path(grid, visited_locations)
             current_troop.instructions = path
 
-        if current_troop.instructions:
-            current_troop.move(current_troop.instructions, grid)
 
 def draw_ui():
     ui_rect = pygame.Rect(grid_rows * grid_tile_size, 0, ui_width, screen_height)

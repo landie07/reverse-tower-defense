@@ -57,9 +57,15 @@ class damage_potion(potion):
             object.damage(-self.damage_amount, grid) #negatieve damage doen is hetzelfde als healen
 
 
-        
-        
+"""
+TODO POTIONS
+healing potion
 
 
+damage potion
+kleinere range dan healing
+doet veel damage
 
+optioneel:speed potion
 
+"""

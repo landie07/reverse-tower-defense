@@ -15,10 +15,10 @@ class troop:
         self.troop_coordinates = troop_coordinates
         self.grid_tile_size = grid_tile_size
         self.instructions = []
-        self.collision = False
         self.at_target = False
 
     def find_path(self, grid, visited_locations):
+        self.at_target = False
         fifo = queue.Queue()
         fifo.put(self.troop_coordinates)
 
@@ -33,7 +33,7 @@ class troop:
         while not fifo.empty():
             current = fifo.get()
  
-            if isinstance(grid[current[1]][current[0]], buildings.Building) and isinstance(grid[current[1]][current[0]], buildings.Landmine) != True:
+            if isinstance(grid[current[1]][current[0]], buildings.Visible_Building):
                 path = []
                 while current is not None:
                     path.append(current)
@@ -60,12 +60,10 @@ class troop:
 
                 if new_coordinates not in visited:
                     if 0 <= new_x < self.x_grid_size and 0 <= new_y < self.y_grid_size:
-                        cell = grid[new_y][new_x]
-                        if cell is None or isinstance(cell, buildings.Building):
-                            fifo.put(new_coordinates)
-                            visited.add(new_coordinates)
-                            came_from[new_coordinates] = current
-                            visited_locations.append(new_coordinates)
+                        fifo.put(new_coordinates)
+                        visited.add(new_coordinates)
+                        came_from[new_coordinates] = current
+                        visited_locations.append(new_coordinates)
 
         return visited_locations, []
 
@@ -180,14 +178,13 @@ class archer(troop):
     def __init__(self, grid_dimentions, troop_coordinates, grid_tile_size):
         health = 50
         speed = 1
-        attack_damage = 2000
+        attack_damage = 25
         troop_size = 12
         
         super().__init__(health, speed, grid_dimentions, attack_damage, troop_size, troop_coordinates, grid_tile_size)
         self.rgb_color = (0, 0, 0)
-        self.shooting = False
-        self.shooting_speed = 5
-        self.shooting_damage = 5
+        self.shooting_speed = 0.1
+        self.target_building = None
 
     def draw_troop(self, screen, rgb_color):
         if self.alive:
@@ -196,64 +193,39 @@ class archer(troop):
             pygame.draw.circle(screen, self.rgb_color, (x, y), self.troop_size)
 
     def attack(self, target_building, grid):
-        arrow.create_arrow(self.troop_coordinates[0], self.troop_coordinates[1], target_building, self.shooting_speed, self.damage) #nog aanpassen!
-        destroyed = target_building.damage(self.attack_damage, grid)
-        return destroyed
+        arrow.create_arrow(
+                self.troop_coordinates[0],
+                self.troop_coordinates[1],
+                target_building,
+                self.shooting_speed,
+                self.attack_damage)
 
-    def find_path(self, grid, visited_locations):
-        fifo = queue.Queue()
-        fifo.put(self.troop_coordinates)
+        dead = target_building.hp <= self.attack_damage
 
-        came_from = {}
-        came_from[self.troop_coordinates] = None
+        return dead
 
-        visited = set()
-        visited.add(self.troop_coordinates)
+    def check_for_collision(self, grid):
+        x, y = self.troop_coordinates
+        for dx, dy in self.instructions[:2]:
+            x += dx
+            y += dy
 
-        directions = [(0, 1), (1, 0), (0, -1), (-1, 0)]
+        directions = [(1, 0), (-1, 0), (0, 1), (0, -1)]
 
-        while not fifo.empty():
-            current = fifo.get()
+        for dx, dy in directions:
+            nx = x + dx
+            ny = y + dy
 
-            if isinstance(grid[current[1]][current[0]], buildings.Building):
-                path = []
-                while current is not None:
-                    path.append(current)
-                    current = came_from[current]
+            if 0 <= nx < self.x_grid_size and 0 <= ny < self.y_grid_size:
+                cell = grid[ny][nx]
+                if isinstance(cell, buildings.Visible_Building):
+                    return True, cell
 
-                path.reverse()
+        if len(self.instructions) < 3:
+            self.instructions = []
 
-                instructions = []
-                for i in range(len(path) - 1):
-                    dx = path[i + 1][0] - path[i][0]
-                    dy = path[i + 1][1] - path[i][1]
-                    instructions.append((dx, dy))
+        return False, None
 
-                if len(instructions) > 0:
-                    instructions.pop()
-
-                self.instructions = instructions[:]
-
-                if len(instructions) >= 4:
-                    return visited_locations, instructions   #reminder: deze regel bevat misschien een fout
-                else:
-                    return visited_locations, instructions   #reminder: deze regel bevat misschien een fout                
-
-            for direction in directions:
-                new_x = current[0] + direction[0]
-                new_y = current[1] + direction[1]
-                new_coordinates = (new_x, new_y)
-
-                if new_coordinates not in visited:
-                    if 0 <= new_x < self.x_grid_size and 0 <= new_y < self.y_grid_size:
-                        cell = grid[new_y][new_x]
-                        if cell is None or isinstance(cell, buildings.Building):
-                            fifo.put(new_coordinates)
-                            visited.add(new_coordinates)
-                            came_from[new_coordinates] = current
-                            visited_locations.append(new_coordinates)
-
-        return visited_locations, []
     
     def move(self, path, grid):
         if len(path) >= 3:
@@ -271,26 +243,3 @@ class archer(troop):
             self.at_target = True
 
         return self.troop_coordinates
-
-    
-
-
-"""
-TODO ARCHER
-xschiet functie maken
-Xtroep niet laten bewegen als hij aanvalt
-Xtroep laten stoppen met bewegen zou hij in 3 zetten tegen zijn doelwit zitten
-
-TODO POTIONS
-healing potion
-
-
-damage potion
-kleinere range dan healing
-doet veel damage
-
-optioneel:speed potion
-
-"""
-
-    

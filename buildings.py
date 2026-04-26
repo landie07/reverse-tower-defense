@@ -29,7 +29,10 @@ class Building:
         grid[self.y][self.x] = None
         return True
 
-class Wall(Building):
+class Visible_Building(Building):
+    pass
+
+class Wall(Visible_Building):
     color = 0x88889A
     hp_max = 200
     destruction_reward = 2
@@ -54,7 +57,7 @@ class Wall(Building):
 
         pygame.draw.rect(screen, self.color, rect)
 
-class Tower(Building):
+class Tower(Visible_Building):
     hp_max = 100
     range = 4
     damage_hp = 5
@@ -169,7 +172,7 @@ class Landmine(Building):
         radius = tile_size // 2 - padding
         pygame.draw.circle(screen, self.color, (centre_x, centre_y), radius)
 
-class Very_Important_Building(Building):
+class Very_Important_Building(Visible_Building):
     color = 0xD1DD13
     hp_max = 500
     destruction_reward = 100
