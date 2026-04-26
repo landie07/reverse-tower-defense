@@ -4,7 +4,7 @@ import pygame
 import arrow
 
 class troop:
-    def __init__(self, health, speed, grid_dimentions, attack_damage, troop_size, troop_coordinates, grid_tile_size):
+    def __init__(self, health, speed, grid_dimentions, attack_damage, troop_size, troop_coordinates, grid_tile_size, attack_radius):
         self.alive = True
         self.health = health
         self.speed = speed
@@ -16,6 +16,7 @@ class troop:
         self.grid_tile_size = grid_tile_size
         self.instructions = []
         self.at_target = False
+        self.attack_radius = attack_radius
 
     def find_path(self, grid, visited_locations):
         self.at_target = False
@@ -50,7 +51,7 @@ class troop:
                 if len(instructions) > 0:
                     instructions.pop()
 
-                self.instructions = instructions[:]
+                self.instructions = instructions
                 return visited_locations, instructions
 
             for direction in directions:
@@ -68,7 +69,7 @@ class troop:
         return visited_locations, []
 
     def move(self, path, grid):
-        if len(path) >= 1:
+        if len(path) >= self.attack_radius:
             old_x, old_y = self.troop_coordinates
             instruction = path.pop(0)
             new_x = old_x + instruction[0]
@@ -86,6 +87,11 @@ class troop:
 
     def check_for_collision(self, grid):
         x, y = self.troop_coordinates
+
+        for dx, dy in self.instructions[:self.attack_radius - 1]:
+            x += dx
+            y += dy
+
         directions = [(1, 0), (-1, 0), (0, 1), (0, -1)]
 
         for dx, dy in directions:
@@ -94,8 +100,11 @@ class troop:
 
             if 0 <= nx < self.x_grid_size and 0 <= ny < self.y_grid_size:
                 cell = grid[ny][nx]
-                if isinstance(cell, buildings.Building):
+                if isinstance(cell, buildings.Visible_Building):
                     return True, cell
+
+        if len(self.instructions) < self.attack_radius:
+            self.instructions = []
 
         return False, None
 
@@ -125,8 +134,9 @@ class big_troop(troop):
         speed = 1
         attack_damage = 67
         troop_size = 12
+        attack_radius = 1
 
-        super().__init__(health, speed, grid_dimentions, attack_damage, troop_size, troop_coordinates, grid_tile_size)
+        super().__init__(health, speed, grid_dimentions, attack_damage, troop_size, troop_coordinates, grid_tile_size, attack_radius)
         self.rgb_color = (0, 255, 0)
 
     def draw_troop(self, screen, rgb_color):
@@ -142,8 +152,9 @@ class small_troop(troop):
         speed = 4
         attack_damage = 50
         troop_size = 8
+        attack_radius = 1
 
-        super().__init__(health, speed, grid_dimentions, attack_damage, troop_size, troop_coordinates, grid_tile_size)
+        super().__init__(health, speed, grid_dimentions, attack_damage, troop_size, troop_coordinates, grid_tile_size, attack_radius)
         self.rgb_color = (0, 0, 255)
 
     def draw_troop(self, screen, rgb_color):
@@ -159,8 +170,9 @@ class terrorist(troop):
         speed = 5
         attack_damage = 999999
         troop_size = 10
+        attack_radius = 1
 
-        super().__init__(health, speed, grid_dimentions, attack_damage, troop_size, troop_coordinates, grid_tile_size)
+        super().__init__(health, speed, grid_dimentions, attack_damage, troop_size, troop_coordinates, grid_tile_size, attack_radius)
         self.rgb_color = (255, 0, 0)
 
     def draw_troop(self, screen, rgb_color):
@@ -180,8 +192,9 @@ class archer(troop):
         speed = 1
         attack_damage = 25
         troop_size = 12
+        attack_radius = 3
         
-        super().__init__(health, speed, grid_dimentions, attack_damage, troop_size, troop_coordinates, grid_tile_size)
+        super().__init__(health, speed, grid_dimentions, attack_damage, troop_size, troop_coordinates, grid_tile_size, attack_radius)
         self.rgb_color = (0, 0, 0)
         self.shooting_speed = 0.5
         self.target_building = None
@@ -204,42 +217,3 @@ class archer(troop):
 
         return dead
 
-    def check_for_collision(self, grid):
-        x, y = self.troop_coordinates
-        for dx, dy in self.instructions[:2]:
-            x += dx
-            y += dy
-
-        directions = [(1, 0), (-1, 0), (0, 1), (0, -1)]
-
-        for dx, dy in directions:
-            nx = x + dx
-            ny = y + dy
-
-            if 0 <= nx < self.x_grid_size and 0 <= ny < self.y_grid_size:
-                cell = grid[ny][nx]
-                if isinstance(cell, buildings.Visible_Building):
-                    return True, cell
-
-        if len(self.instructions) < 3:
-            self.instructions = []
-
-        return False, None
-
-    
-    def move(self, path, grid):
-        if len(path) >= 3:
-            old_x, old_y = self.troop_coordinates
-            instruction = path.pop(0)
-            new_x = old_x + instruction[0]
-            new_y = old_y + instruction[1]
-
-            if grid[old_y][old_x] is self:
-                grid[old_y][old_x] = None
-
-            self.troop_coordinates = (new_x, new_y)
-            grid[new_y][new_x] = self
-        else:
-            self.at_target = True
-
-        return self.troop_coordinates
