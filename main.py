@@ -257,7 +257,6 @@ def draw_everything():
 running = True
 move_timer = 0
 
-a = 0
 while running:
     clock.tick(fps)
 
@@ -296,6 +295,5 @@ while running:
             update_troops()
 
     draw_everything()
-    a += 1
 
 pygame.quit()

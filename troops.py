@@ -183,7 +183,7 @@ class archer(troop):
         
         super().__init__(health, speed, grid_dimentions, attack_damage, troop_size, troop_coordinates, grid_tile_size)
         self.rgb_color = (0, 0, 0)
-        self.shooting_speed = 0.1
+        self.shooting_speed = 0.5
         self.target_building = None
 
     def draw_troop(self, screen, rgb_color):
