@@ -4,6 +4,7 @@ import math
 from buildings import *
 from troops import *
 import arrow 
+import particle_effect 
 
 pygame.init()
 
@@ -12,11 +13,11 @@ pygame.init()
 # =========================================================
 grid_rows = 25
 grid_cols = 25
-grid_tile_size = 35
-ui_height = 160
+grid_tile_size = 30
+ui_width = 350
 
-screen_width = grid_cols * grid_tile_size
-screen_height = grid_rows * grid_tile_size + ui_height
+screen_width = grid_cols * grid_tile_size + ui_width
+screen_height = grid_rows * grid_tile_size
 
 fps = 60
 move_delay = 20
@@ -59,7 +60,8 @@ selected_troop = "small"
 troop_costs = {
     "small": 2,
     "big": 5,
-    "terrorist": 4
+    "terrorist": 4,
+    "archer": 3,
 }
 
 
@@ -141,8 +143,10 @@ def place_troop(row, col):
         new_troop = small_troop((grid_rows, grid_cols), (col, row), grid_tile_size)
     elif selected_troop == "big":
         new_troop = big_troop((grid_rows, grid_cols), (col, row), grid_tile_size)
-    else:
+    elif selected_troop == "terrorist":
         new_troop = terrorist((grid_rows, grid_cols), (col, row), grid_tile_size)
+    elif selected_troop == "archer":
+        new_troop = archer((grid_rows, grid_cols), (col, row), grid_tile_size)
 
     troops.append(new_troop)
     grid[row][col] = new_troop
@@ -171,32 +175,48 @@ def update_troops():
             destroyed = current_troop.attack(current_building, grid)
             if destroyed:
                 cash += current_building.destruction_reward
-            current_troop.instructions = []
+                current_troop.instructions = []
             continue
 
-        if not current_troop.instructions:
+        if current_troop.instructions:
+            current_troop.move(current_troop.instructions, grid)
+        else:
             visited_locations = []
             _, path = current_troop.find_path(grid, visited_locations)
             current_troop.instructions = path
 
-        if current_troop.instructions:
-            current_troop.move(current_troop.instructions, grid)
 
 def draw_ui():
-    ui_rect = pygame.Rect(0, grid_rows * grid_tile_size, screen_width, ui_height)
+    ui_rect = pygame.Rect(grid_rows * grid_tile_size, 0, ui_width, screen_height)
     pygame.draw.rect(screen, (25, 25, 25), ui_rect)
 
-    text1 = font.render("1 = small   2 = big   3 = terrorist", True, (255, 255, 255))  # text --> iets om te tekenen
-    text2 = font.render(f"selected: {selected_troop}", True, (255, 255, 0))
-    text3 = font.render(f"cash: {cash}", True, (0, 255, 0))
-    text4 = small_font.render("green edge tiles = where you can place troops", True, (200, 200, 200))
-    text5 = small_font.render("towers shoot, landmines explode", True, (200, 200, 200))
+    text1 = font.render(f"1 = small {troop_costs["small"]}¢", True, (255, 255, 255))
+    text2 = font.render(f"2 = big {troop_costs["big"]}¢", True, (255, 255, 255))
+    text3 = font.render(f"3 = terrorist {troop_costs["terrorist"]}¢", True, (255, 255, 255))
+    text4 = font.render(f"4 = archer {troop_costs["archer"]}¢", True, (255, 255, 255))
+    text5 = font.render(f"selected: {selected_troop}", True, (255, 255, 0))
+    text6 = font.render(f"cash: {cash}¢", True, (0, 255, 0))
+    text7 = small_font.render("green edge tiles = where you can place troops", True, (200, 200, 200))
+    text8 = small_font.render("towers shoot, landmines explode", True, (200, 200, 200))
 
-    screen.blit(text1, (10, grid_rows * grid_tile_size + 10))  # een surface tekenen op een andere
-    screen.blit(text2, (10, grid_rows * grid_tile_size + 40))
-    screen.blit(text3, (220, grid_rows * grid_tile_size + 40))
-    screen.blit(text4, (350, grid_rows * grid_tile_size + 20))
-    screen.blit(text5, (350, grid_rows * grid_tile_size + 45))
+    padding = 5
+    height = 10
+    screen.blit(text1, (grid_cols * grid_tile_size + 10, height))  # een surface tekenen op een andere
+    height += text1.get_height() + padding
+    screen.blit(text2, (grid_cols * grid_tile_size + 10, height))
+    height += text2.get_height() + padding
+    screen.blit(text3, (grid_cols * grid_tile_size + 10, height))
+    height += text3.get_height() + padding
+    screen.blit(text4, (grid_cols * grid_tile_size + 10, height))
+    height += text4.get_height() + padding
+    screen.blit(text5, (grid_cols * grid_tile_size + 10, height))
+    height += text5.get_height() + padding
+    screen.blit(text6, (grid_cols * grid_tile_size + 10, height))
+    height += text6.get_height() + padding
+    screen.blit(text7, (grid_cols * grid_tile_size + 10, height))
+    height += text7.get_height() + padding
+    screen.blit(text8, (grid_cols * grid_tile_size + 10, height))
+    height += text8.get_height() + padding
 
 def draw_everything():
     screen.fill((30, 30, 30))
@@ -219,7 +239,9 @@ def draw_everything():
     for current_troop in troops:
         if current_troop.alive:
             current_troop.draw_troop(screen, (255, 255, 255))
+
     arrow.draw_arrows(screen, grid_tile_size)
+    particle_effect.draw(screen, grid_tile_size)
 
     draw_ui()
     
@@ -227,7 +249,7 @@ def draw_everything():
 
     if not any([isinstance(b, Very_Important_Building) for b in lst_allive_buildings]):
         win_text = font.render("you destroyed the very important building!", True, (255, 255, 255))
-        screen.blit(win_text, (screen_width // 2 - 140, screen_height // 2 - 20))
+        screen.blit(win_text, ((screen_width - win_text.get_width()) // 2, (screen_height - win_text.get_height()) // 2))
 
     pygame.display.flip()
 
@@ -237,7 +259,6 @@ def draw_everything():
 running = True
 move_timer = 0
 
-a = 0
 while running:
     clock.tick(fps)
 
@@ -252,6 +273,8 @@ while running:
                 selected_troop = "big"
             elif event.key == pygame.K_3:
                 selected_troop = "terrorist"
+            elif event.key == pygame.K_4:
+                selected_troop = "archer"
             elif event.key == pygame.K_ESCAPE:
                 running = False
 
@@ -274,6 +297,5 @@ while running:
             update_troops()
 
     draw_everything()
-    a += 1
 
 pygame.quit()

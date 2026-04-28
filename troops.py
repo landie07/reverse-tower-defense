@@ -1,12 +1,14 @@
 import queue
 import buildings
 import pygame
+import particle_effect
 import arrow
 
 class troop:
-    def __init__(self, health, speed, grid_dimentions, attack_damage, troop_size, troop_coordinates, grid_tile_size):
+    def __init__(self, health, speed, grid_dimentions, attack_damage, troop_size, troop_coordinates, grid_tile_size, attack_radius):
         self.alive = True
         self.health = health
+        self.max_health = health
         self.speed = speed
         self.attack_damage = attack_damage
         self.grid_dimentions = grid_dimentions
@@ -15,10 +17,11 @@ class troop:
         self.troop_coordinates = troop_coordinates
         self.grid_tile_size = grid_tile_size
         self.instructions = []
-        self.collision = False
         self.at_target = False
+        self.attack_radius = attack_radius
 
     def find_path(self, grid, visited_locations):
+        self.at_target = False
         fifo = queue.Queue()
         fifo.put(self.troop_coordinates)
 
@@ -33,7 +36,7 @@ class troop:
         while not fifo.empty():
             current = fifo.get()
  
-            if isinstance(grid[current[1]][current[0]], buildings.Building) and isinstance(grid[current[1]][current[0]], buildings.Landmine) != True:
+            if isinstance(grid[current[1]][current[0]], buildings.Visible_Building):
                 path = []
                 while current is not None:
                     path.append(current)
@@ -50,7 +53,7 @@ class troop:
                 if len(instructions) > 0:
                     instructions.pop()
 
-                self.instructions = instructions[:]
+                self.instructions = instructions
                 return visited_locations, instructions
 
             for direction in directions:
@@ -60,17 +63,15 @@ class troop:
 
                 if new_coordinates not in visited:
                     if 0 <= new_x < self.x_grid_size and 0 <= new_y < self.y_grid_size:
-                        cell = grid[new_y][new_x]
-                        if cell is None or isinstance(cell, buildings.Building):
-                            fifo.put(new_coordinates)
-                            visited.add(new_coordinates)
-                            came_from[new_coordinates] = current
-                            visited_locations.append(new_coordinates)
+                        fifo.put(new_coordinates)
+                        visited.add(new_coordinates)
+                        came_from[new_coordinates] = current
+                        visited_locations.append(new_coordinates)
 
         return visited_locations, []
 
     def move(self, path, grid):
-        if len(path) >= 1:
+        if len(path) >= self.attack_radius:
             old_x, old_y = self.troop_coordinates
             instruction = path.pop(0)
             new_x = old_x + instruction[0]
@@ -88,6 +89,11 @@ class troop:
 
     def check_for_collision(self, grid):
         x, y = self.troop_coordinates
+
+        for dx, dy in self.instructions[:self.attack_radius - 1]:
+            x += dx
+            y += dy
+
         directions = [(1, 0), (-1, 0), (0, 1), (0, -1)]
 
         for dx, dy in directions:
@@ -96,8 +102,11 @@ class troop:
 
             if 0 <= nx < self.x_grid_size and 0 <= ny < self.y_grid_size:
                 cell = grid[ny][nx]
-                if isinstance(cell, buildings.Building):
+                if isinstance(cell, buildings.Visible_Building):
                     return True, cell
+
+        if len(self.instructions) < self.attack_radius:
+            self.instructions = []
 
         return False, None
 
@@ -120,6 +129,26 @@ class troop:
         if grid[y][x] is self:
             grid[y][x] = None
 
+    def _draw_health_bar(self, screen):
+        if self.health >= self.max_health:
+            return
+
+        green = (0, 255, 0)
+        red = (255, 0, 0)
+        padding = 4
+        height = padding
+        width = self.grid_tile_size - 2*padding
+        s = pygame.Surface((width, height))
+        s.set_alpha(96)
+        s.fill(red)
+        rect = pygame.Rect(0, 0, int(self.health / self.max_health * width), height)
+        pygame.draw.rect(s, green, rect)
+
+        x, y = self.troop_coordinates
+        x = x * self.grid_tile_size + padding
+        y = y * self.grid_tile_size + padding
+        screen.blit(s, (x, y))
+
 
 class big_troop(troop):
     def __init__(self, grid_dimentions, troop_coordinates, grid_tile_size):
@@ -127,8 +156,9 @@ class big_troop(troop):
         speed = 1
         attack_damage = 67
         troop_size = 12
+        attack_radius = 1
 
-        super().__init__(health, speed, grid_dimentions, attack_damage, troop_size, troop_coordinates, grid_tile_size)
+        super().__init__(health, speed, grid_dimentions, attack_damage, troop_size, troop_coordinates, grid_tile_size, attack_radius)
         self.rgb_color = (0, 255, 0)
 
     def draw_troop(self, screen, rgb_color):
@@ -136,6 +166,7 @@ class big_troop(troop):
             x = self.troop_coordinates[0] * self.grid_tile_size + self.grid_tile_size // 2
             y = self.troop_coordinates[1] * self.grid_tile_size + self.grid_tile_size // 2
             pygame.draw.circle(screen, self.rgb_color, (x, y), self.troop_size)
+            self._draw_health_bar(screen)
 
 
 class small_troop(troop):
@@ -144,8 +175,9 @@ class small_troop(troop):
         speed = 4
         attack_damage = 50
         troop_size = 8
+        attack_radius = 1
 
-        super().__init__(health, speed, grid_dimentions, attack_damage, troop_size, troop_coordinates, grid_tile_size)
+        super().__init__(health, speed, grid_dimentions, attack_damage, troop_size, troop_coordinates, grid_tile_size, attack_radius)
         self.rgb_color = (0, 0, 255)
 
     def draw_troop(self, screen, rgb_color):
@@ -153,6 +185,7 @@ class small_troop(troop):
             x = self.troop_coordinates[0] * self.grid_tile_size + self.grid_tile_size // 2
             y = self.troop_coordinates[1] * self.grid_tile_size + self.grid_tile_size // 2
             pygame.draw.circle(screen, self.rgb_color, (x, y), self.troop_size)
+            self._draw_health_bar(screen)
 
 
 class terrorist(troop):
@@ -161,136 +194,55 @@ class terrorist(troop):
         speed = 5
         attack_damage = 999999
         troop_size = 10
+        attack_radius = 1
 
-        super().__init__(health, speed, grid_dimentions, attack_damage, troop_size, troop_coordinates, grid_tile_size)
+        super().__init__(health, speed, grid_dimentions, attack_damage, troop_size, troop_coordinates, grid_tile_size, attack_radius)
         self.rgb_color = (255, 0, 0)
+        self.explode_color = (221, 69, 17, 200)
 
     def draw_troop(self, screen, rgb_color):
         if self.alive:
             x = self.troop_coordinates[0] * self.grid_tile_size + self.grid_tile_size // 2
             y = self.troop_coordinates[1] * self.grid_tile_size + self.grid_tile_size // 2
             pygame.draw.circle(screen, self.rgb_color, (x, y), self.troop_size)
+            self._draw_health_bar(screen)
 
     def attack(self, target_building, grid):
         destroyed = target_building.damage(self.attack_damage, grid)
         self.die(grid)
+        x, y = self.troop_coordinates
+        particle_effect.create(x, y, 30, self.attack_radius*self.grid_tile_size, self.explode_color)
         return destroyed
 
 class archer(troop):
     def __init__(self, grid_dimentions, troop_coordinates, grid_tile_size):
         health = 50
         speed = 1
-        attack_damage = 2000
+        attack_damage = 25
         troop_size = 12
+        attack_radius = 3
         
-        super().__init__(health, speed, grid_dimentions, attack_damage, troop_size, troop_coordinates, grid_tile_size)
+        super().__init__(health, speed, grid_dimentions, attack_damage, troop_size, troop_coordinates, grid_tile_size, attack_radius)
         self.rgb_color = (0, 0, 0)
-        self.shooting = False
-        self.shooting_speed = 5
-        self.shooting_damage = 5
+        self.shooting_speed = 0.5
+        self.target_building = None
 
     def draw_troop(self, screen, rgb_color):
         if self.alive:
             x = self.troop_coordinates[0] * self.grid_tile_size + self.grid_tile_size // 2
             y = self.troop_coordinates[1] * self.grid_tile_size + self.grid_tile_size // 2
             pygame.draw.circle(screen, self.rgb_color, (x, y), self.troop_size)
+            self._draw_health_bar(screen)
 
     def attack(self, target_building, grid):
-        arrow.create_arrow(self.troop_coordinates[0], self.troop_coordinates[1], target_building, self.shooting_speed, self.damage) #nog aanpassen!
-        destroyed = target_building.damage(self.attack_damage, grid)
-        return destroyed
+        arrow.create_arrow(
+                self.troop_coordinates[0],
+                self.troop_coordinates[1],
+                target_building,
+                self.shooting_speed,
+                self.attack_damage)
 
-    def find_path(self, grid, visited_locations):
-        fifo = queue.Queue()
-        fifo.put(self.troop_coordinates)
+        dead = target_building.hp <= self.attack_damage
 
-        came_from = {}
-        came_from[self.troop_coordinates] = None
+        return dead
 
-        visited = set()
-        visited.add(self.troop_coordinates)
-
-        directions = [(0, 1), (1, 0), (0, -1), (-1, 0)]
-
-        while not fifo.empty():
-            current = fifo.get()
-
-            if isinstance(grid[current[1]][current[0]], buildings.Building):
-                path = []
-                while current is not None:
-                    path.append(current)
-                    current = came_from[current]
-
-                path.reverse()
-
-                instructions = []
-                for i in range(len(path) - 1):
-                    dx = path[i + 1][0] - path[i][0]
-                    dy = path[i + 1][1] - path[i][1]
-                    instructions.append((dx, dy))
-
-                if len(instructions) > 0:
-                    instructions.pop()
-
-                self.instructions = instructions[:]
-
-                if len(instructions) >= 4:
-                    return visited_locations, instructions   #reminder: deze regel bevat misschien een fout
-                else:
-                    return visited_locations, instructions   #reminder: deze regel bevat misschien een fout                
-
-            for direction in directions:
-                new_x = current[0] + direction[0]
-                new_y = current[1] + direction[1]
-                new_coordinates = (new_x, new_y)
-
-                if new_coordinates not in visited:
-                    if 0 <= new_x < self.x_grid_size and 0 <= new_y < self.y_grid_size:
-                        cell = grid[new_y][new_x]
-                        if cell is None or isinstance(cell, buildings.Building):
-                            fifo.put(new_coordinates)
-                            visited.add(new_coordinates)
-                            came_from[new_coordinates] = current
-                            visited_locations.append(new_coordinates)
-
-        return visited_locations, []
-    
-    def move(self, path, grid):
-        if len(path) >= 3:
-            old_x, old_y = self.troop_coordinates
-            instruction = path.pop(0)
-            new_x = old_x + instruction[0]
-            new_y = old_y + instruction[1]
-
-            if grid[old_y][old_x] is self:
-                grid[old_y][old_x] = None
-
-            self.troop_coordinates = (new_x, new_y)
-            grid[new_y][new_x] = self
-        else:
-            self.at_target = True
-
-        return self.troop_coordinates
-
-    
-
-
-"""
-TODO ARCHER
-xschiet functie maken
-Xtroep niet laten bewegen als hij aanvalt
-Xtroep laten stoppen met bewegen zou hij in 3 zetten tegen zijn doelwit zitten
-
-TODO POTIONS
-healing potion
-
-
-damage potion
-kleinere range dan healing
-doet veel damage
-
-optioneel:speed potion
-
-"""
-
-    

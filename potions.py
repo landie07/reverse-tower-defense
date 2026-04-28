@@ -66,9 +66,15 @@ class damage_potion(potion):
 
 
 
-        
-        
+"""
+TODO POTIONS
+healing potion
 
 
+damage potion
+kleinere range dan healing
+doet veel damage
 
+optioneel:speed potion
 
+"""

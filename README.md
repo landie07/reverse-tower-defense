@@ -3,14 +3,10 @@
 WPO groep 4
 
 ## mogelijks implementern:
+ - [ ] troepen met verschillende snelheden
+ - [ ] troepen rondsturen
 ### lander:
- - [ ] archer
- - [ ] potions
+ - [x] potions
 ### idris:
- - [x] centraal doelwit (gebouw)
- - [x] animatie toren
  - [ ] random generation
 ### sava:
- - [x] Grid groter
- - [x] tickrate laag
- - [x] centraal doelwit (winnen)
