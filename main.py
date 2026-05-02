@@ -7,6 +7,14 @@ import arrow
 import particle_effect 
 
 pygame.init()
+# =========================================================
+"MUSIC"
+# =========================================================
+pygame.mixer.init()
+
+pygame.mixer.music.load("kissan4-pixel-paradise-358340.mp3")
+pygame.mixer.music.set_volume(0.4)
+pygame.mixer.music.play(-1)
 
 # =========================================================
 "SETTINGS"
@@ -245,11 +253,12 @@ def draw_everything():
 
     draw_ui()
     
-    lst_allive_buildings = get_alive_buildings()
+    
 
-    if not any([isinstance(b, Very_Important_Building) for b in lst_allive_buildings]):
-        win_text = font.render("you destroyed the very important building!", True, (255, 255, 255))
-        screen.blit(win_text, ((screen_width - win_text.get_width()) // 2, (screen_height - win_text.get_height()) // 2))
+    if not (isinstance(grid[12][12], Very_Important_Building)):
+            
+            win_text = font.render("you destroyed the very important building!", True, (255, 255, 255))
+            screen.blit(win_text, ((screen_width - win_text.get_width()) // 2, (screen_height - win_text.get_height()) // 2))
 
     pygame.display.flip()
 
