@@ -5,8 +5,8 @@ WPO groep 4
 ## mogelijks implementern:
  - [ ] troepen rondsturen
 ### lander:
- - [ ] troepen met verschillende snelheden
- - [ ] troepen uitbalanceren
+ - [x] troepen met verschillende snelheden
+ - [x] troepen uitbalanceren
  - [ ] sound effects toevoegen
 ### idris:
  - [ ] random generation
