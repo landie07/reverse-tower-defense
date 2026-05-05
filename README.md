@@ -3,10 +3,13 @@
 WPO groep 4
 
 ## mogelijks implementern:
- - [ ] troepen met verschillende snelheden
  - [ ] troepen rondsturen
 ### lander:
- - [x] potions
+ - [x] troepen met verschillende snelheden
+ - [x] troepen uitbalanceren
+ - [ ] sound effects toevoegen
 ### idris:
  - [ ] random generation
 ### sava:
+ - [ ] potions implementeren
+

@@ -5,6 +5,7 @@ from buildings import *
 from troops import *
 import arrow 
 import particle_effect 
+import potions 
 
 pygame.init()
 # =========================================================
@@ -62,6 +63,7 @@ def make_grid(surface, normal_color, spawn_color, height_block, width_block, hei
 # =========================================================
 grid = [[None for col in range(grid_cols)] for row in range(grid_rows)]
 troops = []
+active_potions = []
 cash = starting_cash
 selected_troop = "small"
 
@@ -70,6 +72,8 @@ troop_costs = {
     "big": 5,
     "terrorist": 4,
     "archer": 3,
+    "health_potion" : 2,
+    "damage_potion" : 2,
 }
 
 
@@ -160,6 +164,27 @@ def place_troop(row, col):
     grid[row][col] = new_troop
     cash -= cost
 
+def place_potions(row,col):
+    global cash
+    
+    if not (0 <= row < grid_rows and 0 <= col < grid_cols):
+        return
+    
+    cost = troop_costs[selected_troop]
+    if cash < cost:
+        return
+    
+    if selected_troop == "health_potion":
+        
+        new_troop = potions.health_potion(cost,3,3,(col,row),screen)
+        new_troop.effect(get_alive_troops(),grid,screen)
+    else :
+        new_troop = potions.damage_potion(cost,3,3,(col,row),screen)
+        new_troop.effect(get_alive_buildings(),grid,screen)
+    active_potions.append(new_troop)
+    cash -= cost
+    
+
 def update_buildings():
     alive_troops = get_alive_troops()
 
@@ -203,10 +228,12 @@ def draw_ui():
     text2 = font.render(f"2 = big {troop_costs["big"]}¢", True, (255, 255, 255))
     text3 = font.render(f"3 = terrorist {troop_costs["terrorist"]}¢", True, (255, 255, 255))
     text4 = font.render(f"4 = archer {troop_costs["archer"]}¢", True, (255, 255, 255))
-    text5 = font.render(f"selected: {selected_troop}", True, (255, 255, 0))
-    text6 = font.render(f"cash: {cash}¢", True, (0, 255, 0))
-    text7 = small_font.render("green edge tiles = where you can place troops", True, (200, 200, 200))
-    text8 = small_font.render("towers shoot, landmines explode", True, (200, 200, 200))
+    text5 = font.render(f"5 = healthpotion{troop_costs["health_potion"]}¢",True,(255,255,255))
+    text6 = font.render(f"6 = damagepotion{troop_costs["damage_potion"]}¢",True,(255,255,255))    
+    text7 = font.render(f"selected: {selected_troop}", True, (255, 255, 0))
+    text8 = font.render(f"cash: {cash}¢", True, (0, 255, 0))
+    text9 = small_font.render("green edge tiles = where you can place troops,you can place potions everywhere on the grid", True, (200, 200, 200))
+    text10 = small_font.render("towers shoot, landmines explode", True, (200, 200, 200))
 
     padding = 5
     height = 10
@@ -226,6 +253,10 @@ def draw_ui():
     height += text7.get_height() + padding
     screen.blit(text8, (grid_cols * grid_tile_size + 10, height))
     height += text8.get_height() + padding
+    screen.blit(text9,(grid_cols * grid_tile_size + 10, height))
+    height += text9.get_height() + padding 
+    screen.blit(text10,(grid_cols * grid_tile_size + 10, height))
+    
 
 def draw_everything():
     screen.fill((30, 30, 30))
@@ -251,7 +282,8 @@ def draw_everything():
 
     arrow.draw_arrows(screen, grid_tile_size)
     particle_effect.draw(screen, grid_tile_size)
-
+    for potion in active_potions:
+        potion.draw_potion(screen)
     draw_ui()
     
     
@@ -285,6 +317,10 @@ while running:
                 selected_troop = "terrorist"
             elif event.key == pygame.K_4:
                 selected_troop = "archer"
+            elif event.key == pygame.K_5:
+                selected_troop = "health_potion"
+            elif event.key == pygame.K_6:
+                selected_troop = "damage_potion"
             elif event.key == pygame.K_ESCAPE:
                 running = False
 
@@ -294,7 +330,9 @@ while running:
                 if my < grid_rows * grid_tile_size:
                     row = my // grid_tile_size
                     col = mx // grid_tile_size
-                    if row == 0 or row == grid_rows - 1 or col == 0 or col == grid_cols - 1:
+                    if selected_troop == "health_potions" or "damage_potions":
+                        place_potions(row, col)
+                    elif row == 0 or row == grid_rows - 1 or col == 0 or col == grid_cols - 1:
                         place_troop(row, col)
 
     update_buildings()
