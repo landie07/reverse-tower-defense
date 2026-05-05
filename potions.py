@@ -11,12 +11,11 @@ class potion:
         self.duration = duration
         self.range = range
         self.coordinates = coordinates
-    
+        self.circle_surface = pygame.Surface((200, 200), pygame.SRCALPHA)
+        pygame.draw.circle(self.circle_surface, (255, 0, 0, 128), (100, 100), 100)
 
     def draw_potion(self, screen):
-        circle_surface = pygame.Surface((200, 200), pygame.SRCALPHA)
-        pygame.draw.circle(circle_surface, (255, 0, 0, 128), (100, 100), 100)
-        screen.blit(circle_surface, (100, 100))
+        screen.blit(self.circle_surface, (self.coordinates[0] - 100, self.coordinates[1] - 100))
 
     def locate_objects(self, object_list):
         objects_in_potionrange = []
