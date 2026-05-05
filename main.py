@@ -180,14 +180,15 @@ def update_troops():
         collision, current_building = current_troop.check_for_collision(grid)
 
         if collision:
-            destroyed = current_troop.attack(current_building, grid)
-            if destroyed:
-                cash += current_building.destruction_reward
-                current_troop.instructions = []
-            continue
-
-        if current_troop.instructions:
-            current_troop.move(current_troop.instructions, grid)
+            if move_timer % (current_troop.attack_speed) == 0:
+                destroyed = current_troop.attack(current_building, grid)
+                if destroyed:
+                    cash += current_building.destruction_reward
+                    current_troop.instructions = []
+                continue
+        if current_troop.instructions:  
+            if move_timer % (current_troop.speed) == 0:
+                current_troop.move(current_troop.instructions, grid)
         else:
             visited_locations = []
             _, path = current_troop.find_path(grid, visited_locations)
@@ -300,10 +301,10 @@ while running:
     arrow.tick_arrows(grid)
 
     move_timer += 1
-    if move_timer >= move_delay:
-        move_timer = 0
-        if len(get_alive_buildings()) > 0:
-            update_troops()
+    #if move_timer >= move_delay:
+        #move_timer = 0
+    if len(get_alive_buildings()) > 0:
+        update_troops()
 
     draw_everything()
 

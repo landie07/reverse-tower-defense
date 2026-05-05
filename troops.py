@@ -4,6 +4,8 @@ import pygame
 import particle_effect
 import arrow
 
+max_speed = 50
+max_attack_speed = 50
 class troop:
     def __init__(self, health, speed, grid_dimentions, attack_damage, troop_size, troop_coordinates, grid_tile_size, attack_radius):
         self.alive = True
@@ -153,13 +155,13 @@ class troop:
 class big_troop(troop):
     def __init__(self, grid_dimentions, troop_coordinates, grid_tile_size):
         health = 50
-        speed = 1
-        attack_damage = 67
+        speed = max_speed - 10
+        attack_damage = 25
         troop_size = 12
         attack_radius = 1
-
         super().__init__(health, speed, grid_dimentions, attack_damage, troop_size, troop_coordinates, grid_tile_size, attack_radius)
         self.rgb_color = (0, 255, 0)
+        self.attack_speed = max_attack_speed - 5
 
     def draw_troop(self, screen, rgb_color):
         if self.alive:
@@ -172,13 +174,14 @@ class big_troop(troop):
 class small_troop(troop):
     def __init__(self, grid_dimentions, troop_coordinates, grid_tile_size):
         health = 15
-        speed = 4
-        attack_damage = 50
-        troop_size = 8
+        speed = max_speed - 25
+        attack_damage = 10
+        troop_size = 6
         attack_radius = 1
-
         super().__init__(health, speed, grid_dimentions, attack_damage, troop_size, troop_coordinates, grid_tile_size, attack_radius)
         self.rgb_color = (0, 0, 255)
+        self.attack_speed = max_attack_speed - 30
+
 
     def draw_troop(self, screen, rgb_color):
         if self.alive:
@@ -190,15 +193,17 @@ class small_troop(troop):
 
 class terrorist(troop):
     def __init__(self, grid_dimentions, troop_coordinates, grid_tile_size):
-        health = 1
-        speed = 5
-        attack_damage = 999999
-        troop_size = 10
+        health = 10
+        speed = max_speed - 35
+        attack_damage = 40
+        troop_size = 4
         attack_radius = 1
+        attack_speed = max_attack_speed - 49
 
         super().__init__(health, speed, grid_dimentions, attack_damage, troop_size, troop_coordinates, grid_tile_size, attack_radius)
         self.rgb_color = (255, 0, 0)
         self.explode_color = (221, 69, 17, 200)
+        self.attack_speed = max_attack_speed - 49
 
     def draw_troop(self, screen, rgb_color):
         if self.alive:
@@ -216,16 +221,18 @@ class terrorist(troop):
 
 class archer(troop):
     def __init__(self, grid_dimentions, troop_coordinates, grid_tile_size):
-        health = 50
-        speed = 1
-        attack_damage = 25
-        troop_size = 12
+        health = 15
+        speed = max_speed - 25
+        attack_damage = 10
+        troop_size = 6
         attack_radius = 3
         
         super().__init__(health, speed, grid_dimentions, attack_damage, troop_size, troop_coordinates, grid_tile_size, attack_radius)
         self.rgb_color = (0, 0, 0)
         self.shooting_speed = 0.5
         self.target_building = None
+        self.attack_speed = max_attack_speed - 20
+
 
     def draw_troop(self, screen, rgb_color):
         if self.alive:
