@@ -48,10 +48,10 @@ class health_potion(potion):
         self.healing_amount = 5
         self.screen = screen
 
-    def heal(self, object_list, grid, screen):
-        objects = potion.locate_objects(self, screen, object_list)
+    def effect(self, object_list, grid, screen):
+        objects = potion.locate_objects(self, object_list)
         for object in objects:
-            object.damage(-self.healing_amount, grid) #negatieve damage doen is hetzelfde als healen
+            object.take_damage(-self.healing_amount, grid) #negatieve damage doen is hetzelfde als healen
 
 class damage_potion(potion):
     def __init__(self, cost, duration, range, coordinates, screen):
@@ -59,8 +59,8 @@ class damage_potion(potion):
         self.damage_amount = 5
         self.screen = screen
 
-    def damage(self, object_list, grid, screen):
-        objects = potion.locate_objects(self, screen, object_list)
+    def effect(self, object_list, grid, screen):
+        objects = potion.locate_objects(self, object_list)
         for object in objects:
             object.damage(self.damage_amount, grid)
 
