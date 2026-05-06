@@ -80,50 +80,6 @@ troop_costs = {
     "damage_potion" : 2,
 }
 
-
-preplaced_buildings = [
-    Very_Important_Building(12, 12),
-    Tower(13, 12),
-    Tower(12, 11),
-    Tower(11, 12),
-    Tower(12, 13),
-    Wall(3, 3),
-    Wall(4, 3),
-    Wall(5, 3),
-    Wall(6, 3),
-    Wall(6, 4),
-    Wall(6, 5),
-    Wall(6, 6),
-    Wall(5, 6),
-    Wall(4, 6),
-    Wall(3, 6),
-    Wall(3, 5),
-    Wall(3, 4),
-    Landmine(2, 2),
-    # Landmine(3, 2),
-    # Landmine(4, 2),
-    # Landmine(5, 2),
-    # Landmine(6, 2),
-    Landmine(7, 2),
-    # Landmine(7, 3),
-    # Landmine(7, 4),
-    # Landmine(7, 5),
-    # Landmine(7, 6),
-    Landmine(7, 7),
-    # Landmine(6, 7),
-    # Landmine(5, 7),
-    # Landmine(4, 7),
-    # Landmine(3, 7),
-    Landmine(2, 7),
-    # Landmine(2, 6),
-    # Landmine(2, 5),
-    # Landmine(2, 4),
-    # Landmine(2, 3),
-]
-
-for current_building in preplaced_buildings:
-    grid[current_building.y][current_building.x] = current_building
-
 grid = generation.generate_level(grid_rows, grid_cols, 100)
 
 # =========================================================
