@@ -330,7 +330,7 @@ while running:
                 if my < grid_rows * grid_tile_size:
                     row = my // grid_tile_size
                     col = mx // grid_tile_size
-                    if selected_troop == "health_potions" or "damage_potions":
+                    if selected_troop == "health_potion" or selected_troop == "damage_potion":
                         place_potions(row, col)
                     elif row == 0 or row == grid_rows - 1 or col == 0 or col == grid_cols - 1:
                         place_troop(row, col)
