@@ -137,11 +137,13 @@ def place_potions(row,col):
         return
     
     if selected_troop == "health_potion":
-        
-        new_troop = potions.health_potion(cost,3,3,(col,row),screen)
+        print("health")
+        print(get_alive_troops())
+        print("test")
+        new_troop = potions.health_potion(cost,3,3,(mx , my),screen)
         new_troop.effect(get_alive_troops(),grid,screen)
     else :
-        new_troop = potions.damage_potion(cost,3,3,(col,row),screen)
+        new_troop = potions.damage_potion(cost,3,3,(mx , my),screen)
         new_troop.effect(get_alive_buildings(),grid,screen)
     active_potions.append(new_troop)
     cash -= cost
@@ -266,7 +268,6 @@ move_timer = 0
 
 while running:
     clock.tick(fps)
-
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
