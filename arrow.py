@@ -48,14 +48,11 @@ class _Arrow:
 
         distance = sqrt(direction_x ** 2 + direction_y ** 2) 
 
-        if direction_x != 0:
-            direction_x /= distance
-        else:
-            direction_x  /= 0.0001
-        if direction_y != 0:
-            direction_y /= distance
-        else:
-            direction_y  /= 0.0001
+        if distance == 0:
+            return (0, 0), 0
+
+        direction_x /= distance
+        direction_y /= distance
 
         return (direction_x, direction_y), distance
 

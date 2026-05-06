@@ -129,7 +129,7 @@ class Wall(Visible_Building):
 
 class Tower(Visible_Building):
     hp_max = 100
-    range = 4
+    shot_range = 4
     damage_hp = 5
     shot_cooldown_max = 45
     color = 0x99550C
@@ -161,7 +161,7 @@ class Tower(Visible_Building):
         if self.target != None and self.target.alive:
             target_x, target_y = self.target.troop_coordinates
             dst = sqrt((self.x - target_x) ** 2 + (self.y - target_y) ** 2)
-            if dst <= self.range:
+            if dst <= self.shot_range:
                 return
 
         self.target = None
@@ -174,7 +174,7 @@ class Tower(Visible_Building):
                 nearest_dst = dst
                 self.target = troop
 
-        if nearest_dst > self.range:
+        if nearest_dst > self.shot_range:
             self.target = None
 
     def draw(self, screen, tile_size):

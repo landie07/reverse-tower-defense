@@ -3,20 +3,12 @@ import queue
 import math
 from buildings import *
 from troops import *
+import generation 
 import arrow 
 import particle_effect 
 import potions 
 
 pygame.init()
-# =========================================================
-"MUSIC"
-# =========================================================
-pygame.mixer.init()
-
-pygame.mixer.music.load("kissan4-pixel-paradise-358340.mp3")
-pygame.mixer.music.set_volume(0.4)
-pygame.mixer.music.play(-1)
-
 # =========================================================
 "SETTINGS"
 # =========================================================
@@ -37,6 +29,18 @@ screen = pygame.display.set_mode((screen_width, screen_height))
 clock = pygame.time.Clock()
 font = pygame.font.SysFont(None, 30)
 small_font = pygame.font.SysFont(None, 22)
+
+volume = 0.4
+muted = False
+
+# =========================================================
+"MUSIC"
+# =========================================================
+pygame.mixer.init()
+
+pygame.mixer.music.load("kissan4-pixel-paradise-358340.mp3")
+pygame.mixer.music.set_volume(volume)
+pygame.mixer.music.play(-1)
 
 # =========================================================
 "VISUAL GRID FUNCTION"
@@ -119,6 +123,8 @@ preplaced_buildings = [
 
 for current_building in preplaced_buildings:
     grid[current_building.y][current_building.x] = current_building
+
+grid = generation.generate_level(grid_rows, grid_cols, 100)
 
 # =========================================================
 "Check state of game + Place and Update + draw ui and rest of game"
@@ -235,23 +241,24 @@ def draw_ui():
     text9 = small_font.render("green edge tiles = where you can place troops,you can place potions everywhere on the grid", True, (200, 200, 200))
     text10 = small_font.render("towers shoot, landmines explode", True, (200, 200, 200))
 
+    left = grid_cols * grid_tile_size + 10
     padding = 5
     height = 10
-    screen.blit(text1, (grid_cols * grid_tile_size + 10, height))  # een surface tekenen op een andere
+    screen.blit(text1, (left, height))  # een surface tekenen op een andere
     height += text1.get_height() + padding
-    screen.blit(text2, (grid_cols * grid_tile_size + 10, height))
+    screen.blit(text2, (left, height))
     height += text2.get_height() + padding
-    screen.blit(text3, (grid_cols * grid_tile_size + 10, height))
+    screen.blit(text3, (left, height))
     height += text3.get_height() + padding
-    screen.blit(text4, (grid_cols * grid_tile_size + 10, height))
+    screen.blit(text4, (left, height))
     height += text4.get_height() + padding
-    screen.blit(text5, (grid_cols * grid_tile_size + 10, height))
+    screen.blit(text5, (left, height))
     height += text5.get_height() + padding
-    screen.blit(text6, (grid_cols * grid_tile_size + 10, height))
+    screen.blit(text6, (left, height))
     height += text6.get_height() + padding
-    screen.blit(text7, (grid_cols * grid_tile_size + 10, height))
+    screen.blit(text7, (left, height))
     height += text7.get_height() + padding
-    screen.blit(text8, (grid_cols * grid_tile_size + 10, height))
+    screen.blit(text8, (left, height))
     height += text8.get_height() + padding
     screen.blit(text9,(grid_cols * grid_tile_size + 10, height))
     height += text9.get_height() + padding 
@@ -323,6 +330,14 @@ while running:
                 selected_troop = "damage_potion"
             elif event.key == pygame.K_ESCAPE:
                 running = False
+            elif event.key == pygame.K_m:
+                if muted:
+                    pygame.mixer.music.set_volume(volume)
+                    muted = False
+                else:
+                    pygame.mixer.music.set_volume(0)
+                    muted = True
+
 
         elif event.type == pygame.MOUSEBUTTONDOWN:
             if event.button == 1:
