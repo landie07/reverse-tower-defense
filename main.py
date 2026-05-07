@@ -183,38 +183,9 @@ def update_troops():
 def update_potions():
     for current_potion in active_potions :
 
-        potion_col = current_potion.coordinates[0] // grid_tile_size # effect enkel met col en row dus omzetten 
-        potion_row = current_potion.coordinates[1] // grid_tile_size
+       
 
-        if isinstance(current_potion, potions.health_potion):
-
-            for current_troop in get_alive_troops():
-
-                troop_col = current_troop.troop_coordinates[0]
-                troop_row = current_troop.troop_coordinates[1]
-
-                distance = math.sqrt(
-                    (troop_col - potion_col) ** 2 +
-                    (troop_row - potion_row) ** 2)
-
-                if distance <= current_potion.range:
-                    current_troop.take_damage(-current_potion.healing_amount, grid)
-
-        elif isinstance(current_potion, potions.damage_potion):
-
-            for current_building in get_alive_buildings():
-
-                building_col = current_building.x
-                building_row = current_building.y
-
-                distance = math.sqrt(
-                    (building_col - potion_col) ** 2 +
-                    (building_row - potion_row) ** 2)
-
-                if distance <= current_potion.range:
-                    current_building.damage(current_potion.damage_amount, grid)
-
-        current_potion.duration -= 0.5
+        current_potion.duration -= 0.25
 
         if current_potion.duration <= 0:
             active_potions.remove(current_potion)
