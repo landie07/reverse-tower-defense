@@ -29,15 +29,6 @@ class potion:
                     print(object)
                     objects_in_potionrange.append(object)
         return objects_in_potionrange
-    
-    def effect(self, object_list, grid, screen):
-        objects = potion.locate_objects(self, screen, object_list)
-        if isinstance(self, health_potion):
-            for object in objects:
-                object.damage(-self.healing_amount, grid) #negatieve damage doen is hetzelfde als healen
-        if isinstance(self, damage_potion):
-            for object in objects:
-                object.damage(self.damage_amount, grid)
 
 class health_potion(potion):
     def __init__(self, cost, duration, range, coordinates, screen):
@@ -45,9 +36,9 @@ class health_potion(potion):
         self.healing_amount = 5
         self.screen = screen
 
-    def draw_potion(self, screen):
-        screen.blit(self.circle_surface, (self.coordinates[0] - 100, self.coordinates[1] - 100))
+    def draw_potion(self, screen, grid_size):
         pygame.draw.circle(self.circle_surface, (0, 255, 0, 50), (100, 100), 100)
+        screen.blit(self.circle_surface, (self.coordinates[0]*grid_size - 100, self.coordinates[1]*grid_size - 100))
 
     def effect(self, object_list, grid, screen):
         objects = potion.locate_objects(self, object_list)
@@ -61,9 +52,9 @@ class damage_potion(potion):
         self.damage_amount = 5
         self.screen = screen
 
-    def draw_potion(self, screen):
-        screen.blit(self.circle_surface, (self.coordinates[0] - 100, self.coordinates[1] - 100))
+    def draw_potion(self, screen, grid_size):
         pygame.draw.circle(self.circle_surface, (255, 0, 0, 50), (100, 100), 100)
+        screen.blit(self.circle_surface, (self.coordinates[0]*grid_size - 100, self.coordinates[1]*grid_size - 100))
     
     def effect(self, object_list, grid, screen):
         objects = potion.locate_objects(self, object_list)

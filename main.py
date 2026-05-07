@@ -137,14 +137,11 @@ def place_potions(row,col):
         return
     
     if selected_troop == "health_potion":
-        print("health")
-        print(get_alive_troops())
-        print("test")
-        new_troop = potions.health_potion(cost,3,3,(mx , my),screen)
-        new_troop.effect(get_alive_troops(),grid,screen)
+        new_troop = potions.health_potion(cost, 2, 3, (col, row), screen)
+        new_troop.effect(get_alive_troops(), grid, screen)
     else :
-        new_troop = potions.damage_potion(cost,3,3,(mx , my),screen)
-        new_troop.effect(get_alive_buildings(),grid,screen)
+        new_troop = potions.damage_potion(cost, 2, 3, (col, row), screen)
+        new_troop.effect(get_alive_buildings(), grid, screen)
     active_potions.append(new_troop)
     cash -= cost
     
@@ -183,6 +180,44 @@ def update_troops():
             _, path = current_troop.find_path(grid, visited_locations)
             current_troop.instructions = path
 
+def update_potions():
+    for current_potion in active_potions :
+
+        potion_col = current_potion.coordinates[0] // grid_tile_size # effect enkel met col en row dus omzetten 
+        potion_row = current_potion.coordinates[1] // grid_tile_size
+
+        if isinstance(current_potion, potions.health_potion):
+
+            for current_troop in get_alive_troops():
+
+                troop_col = current_troop.troop_coordinates[0]
+                troop_row = current_troop.troop_coordinates[1]
+
+                distance = math.sqrt(
+                    (troop_col - potion_col) ** 2 +
+                    (troop_row - potion_row) ** 2)
+
+                if distance <= current_potion.range:
+                    current_troop.take_damage(-current_potion.healing_amount, grid)
+
+        elif isinstance(current_potion, potions.damage_potion):
+
+            for current_building in get_alive_buildings():
+
+                building_col = current_building.x
+                building_row = current_building.y
+
+                distance = math.sqrt(
+                    (building_col - potion_col) ** 2 +
+                    (building_row - potion_row) ** 2)
+
+                if distance <= current_potion.range:
+                    current_building.damage(current_potion.damage_amount, grid)
+
+        current_potion.duration -= 0.5
+
+        if current_potion.duration <= 0:
+            active_potions.remove(current_potion)
 
 def draw_ui():
     ui_rect = pygame.Rect(grid_rows * grid_tile_size, 0, ui_width, screen_height)
@@ -248,7 +283,7 @@ def draw_everything():
     arrow.draw_arrows(screen, grid_tile_size)
     particle_effect.draw(screen, grid_tile_size)
     for potion in active_potions:
-        potion.draw_potion(screen)
+        potion.draw_potion(screen, grid_tile_size)
     draw_ui()
     
     
@@ -300,12 +335,15 @@ while running:
             if event.button == 1:
                 mx, my = pygame.mouse.get_pos()
                 if my < grid_rows * grid_tile_size:
-                    row = my // grid_tile_size
-                    col = mx // grid_tile_size
                     if selected_troop == "health_potion" or selected_troop == "damage_potion":
+                        row = my / grid_tile_size
+                        col = mx / grid_tile_size
                         place_potions(row, col)
-                    elif row == 0 or row == grid_rows - 1 or col == 0 or col == grid_cols - 1:
-                        place_troop(row, col)
+                    else:
+                        row = my // grid_tile_size
+                        col = mx // grid_tile_size
+                        if row == 0 or row == grid_rows - 1 or col == 0 or col == grid_cols - 1:
+                            place_troop(row, col)
 
     update_buildings()
     arrow.tick_arrows(grid)
@@ -315,6 +353,7 @@ while running:
         #move_timer = 0
     if len(get_alive_buildings()) > 0:
         update_troops()
+        update_potions()
 
     draw_everything()
 
