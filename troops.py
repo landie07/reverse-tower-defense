@@ -116,6 +116,8 @@ class troop:
         self.health -= damage
         if self.health <= 0:
             self.die(grid)
+        elif self.health > self.max_health:
+            self.health = self.max_health
 
     def attack(self, target_building, grid):
         destroyed = target_building.damage(self.attack_damage, grid)

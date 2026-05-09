@@ -89,7 +89,7 @@ translation = {
     "damage_potion" : "vuurbal",
 }
 
-grid = generation.generate_level(grid_rows, grid_cols, 100)
+grid = generation.generate_level(grid_rows, grid_cols, 75)
 
 # =========================================================
 "Check state of game + Place and Update + draw ui and rest of game"
