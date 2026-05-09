@@ -195,7 +195,7 @@ class terrorist(troop):
     def __init__(self, grid_dimentions, troop_coordinates, grid_tile_size):
         health = 10
         speed = max_speed - 35
-        attack_damage = 40
+        attack_damage = 60
         troop_size = 4
         attack_radius = 1
         attack_speed = max_attack_speed - 49
