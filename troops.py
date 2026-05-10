@@ -156,7 +156,7 @@ class troop:
 
 class big_troop(troop):
     def __init__(self, grid_dimentions, troop_coordinates, grid_tile_size):
-        health = 50
+        health = 65
         speed = max_speed - 10
         attack_damage = 25
         troop_size = 12
