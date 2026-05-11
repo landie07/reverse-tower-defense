@@ -80,7 +80,16 @@ troop_costs = {
     "damage_potion" : 2,
 }
 
-grid = generation.generate_level(grid_rows, grid_cols, 100)
+translation = {
+    "small": "kleine troep",
+    "big": "grote troep",
+    "terrorist": "terrorist",
+    "archer": "boogschutter",
+    "health_potion" : "geneesdrankje",
+    "damage_potion" : "vuurbal",
+}
+
+grid = generation.generate_level(grid_rows, grid_cols, 75)
 
 # =========================================================
 "Check state of game + Place and Update + draw ui and rest of game"
@@ -137,11 +146,10 @@ def place_potions(row,col):
         return
     
     if selected_troop == "health_potion":
-        new_troop = potions.health_potion(cost, 2, 3, (col, row), screen)
-        new_troop.effect(get_alive_troops(), grid, screen)
-    else :
-        new_troop = potions.damage_potion(cost, 2, 3, (col, row), screen)
-        new_troop.effect(get_alive_buildings(), grid, screen)
+        new_troop = potions.health_potion(cost, (col, row))
+    else:
+        new_troop = potions.damage_potion(cost, (col, row))
+
     active_potions.append(new_troop)
     cash -= cost
     
@@ -154,7 +162,6 @@ def update_buildings():
             if isinstance(cell, Building):
                 cell.tick(grid, alive_troops)
                 alive_troops = list(filter(lambda t: t.alive, alive_troops))
-            
 
 def update_troops():
     global cash
@@ -181,11 +188,11 @@ def update_troops():
             current_troop.instructions = path
 
 def update_potions():
-    for current_potion in active_potions :
-
-       
-
-        current_potion.duration -= 0.25
+    object_list = []
+    object_list.extend(get_alive_troops())
+    object_list.extend(get_alive_buildings())
+    for current_potion in active_potions:
+        current_potion.effect(object_list, grid)
 
         if current_potion.duration <= 0:
             active_potions.remove(current_potion)
@@ -194,40 +201,27 @@ def draw_ui():
     ui_rect = pygame.Rect(grid_rows * grid_tile_size, 0, ui_width, screen_height)
     pygame.draw.rect(screen, (25, 25, 25), ui_rect)
 
-    text1 = font.render(f"1 = small {troop_costs["small"]}¢", True, (255, 255, 255))
-    text2 = font.render(f"2 = big {troop_costs["big"]}¢", True, (255, 255, 255))
-    text3 = font.render(f"3 = terrorist {troop_costs["terrorist"]}¢", True, (255, 255, 255))
-    text4 = font.render(f"4 = archer {troop_costs["archer"]}¢", True, (255, 255, 255))
-    text5 = font.render(f"5 = healthpotion{troop_costs["health_potion"]}¢",True,(255,255,255))
-    text6 = font.render(f"6 = damagepotion{troop_costs["damage_potion"]}¢",True,(255,255,255))    
-    text7 = font.render(f"selected: {selected_troop}", True, (255, 255, 0))
-    text8 = font.render(f"cash: {cash}¢", True, (0, 255, 0))
-    text9 = small_font.render("green edge tiles = where you can place troops,you can place potions everywhere on the grid", True, (200, 200, 200))
-    text10 = small_font.render("towers shoot, landmines explode", True, (200, 200, 200))
+    texts = []
+    texts.append(font.render("toetsen voor troep of drankje:", True, (255, 255, 255)))
+    
+    i = 1
+    for troop in troop_costs:
+        texts.append(font.render(f" [{i}]: {translation[troop]} {troop_costs[troop]}¢", True, (255, 255, 255)))
+        i += 1
+
+    texts.append(font.render(f"geselecteerd: {translation[selected_troop]}", True, (255, 255, 0)))
+    texts.append(font.render(f"cash: {cash}¢", True, (0, 255, 0)))
+    texts.append(small_font.render("plaats troepen op de groene vakjes,", True, (200, 200, 200)))
+    texts.append(small_font.render("drankjes kunnen overal geplaatst worden", True, (200, 200, 200)))
+    texts.append(small_font.render("bruine torens schieten, groene landmijnen", True, (200, 200, 200)))
+    texts.append(small_font.render("ontploffen", True, (200, 200, 200)))
 
     left = grid_cols * grid_tile_size + 10
     padding = 5
     height = 10
-    screen.blit(text1, (left, height))  # een surface tekenen op een andere
-    height += text1.get_height() + padding
-    screen.blit(text2, (left, height))
-    height += text2.get_height() + padding
-    screen.blit(text3, (left, height))
-    height += text3.get_height() + padding
-    screen.blit(text4, (left, height))
-    height += text4.get_height() + padding
-    screen.blit(text5, (left, height))
-    height += text5.get_height() + padding
-    screen.blit(text6, (left, height))
-    height += text6.get_height() + padding
-    screen.blit(text7, (left, height))
-    height += text7.get_height() + padding
-    screen.blit(text8, (left, height))
-    height += text8.get_height() + padding
-    screen.blit(text9,(grid_cols * grid_tile_size + 10, height))
-    height += text9.get_height() + padding 
-    screen.blit(text10,(grid_cols * grid_tile_size + 10, height))
-    
+    for text in texts:
+        screen.blit(text, (left, height))  # een surface tekenen op een andere
+        height += text.get_height() + padding
 
 def draw_everything():
     screen.fill((30, 30, 30))
@@ -256,8 +250,6 @@ def draw_everything():
     for potion in active_potions:
         potion.draw_potion(screen, grid_tile_size)
     draw_ui()
-    
-    
 
     if not (isinstance(grid[12][12], Very_Important_Building)):
             
@@ -320,8 +312,6 @@ while running:
     arrow.tick_arrows(grid)
 
     move_timer += 1
-    #if move_timer >= move_delay:
-        #move_timer = 0
     if len(get_alive_buildings()) > 0:
         update_troops()
         update_potions()

@@ -116,6 +116,8 @@ class troop:
         self.health -= damage
         if self.health <= 0:
             self.die(grid)
+        elif self.health > self.max_health:
+            self.health = self.max_health
 
     def attack(self, target_building, grid):
         destroyed = target_building.damage(self.attack_damage, grid)
@@ -154,7 +156,7 @@ class troop:
 
 class big_troop(troop):
     def __init__(self, grid_dimentions, troop_coordinates, grid_tile_size):
-        health = 50
+        health = 65
         speed = max_speed - 10
         attack_damage = 25
         troop_size = 12
@@ -195,7 +197,7 @@ class terrorist(troop):
     def __init__(self, grid_dimentions, troop_coordinates, grid_tile_size):
         health = 10
         speed = max_speed - 35
-        attack_damage = 40
+        attack_damage = 60
         troop_size = 4
         attack_radius = 1
         attack_speed = max_attack_speed - 49
